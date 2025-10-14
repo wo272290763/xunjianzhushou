@@ -2095,31 +2095,22 @@
                 return;
             }
             
-            // 第一次确认
-            const firstConfirm = confirm(`警告：您即将删除所有设备数据（共 ${devices.length} 个设备）！\n\n此操作不可恢复，请确认是否继续？`);
-            
-            if (!firstConfirm) {
-                return;
-            }
-            
-            // 第二次确认 - 要求用户输入特定文字
-            const secondConfirm = prompt(`为确认删除，请输入"删除所有设备"并确定：`);
-            
-            if (secondConfirm === '删除所有设备') {
+            // 确认对话框
+            const confirmDelete = confirm(`警告：您即将删除所有设备数据（共 ${devices.length} 个设备）！\n\n此操作不可恢复，请确认是否继续？`);
+
+            if (confirmDelete) {
                 // 执行删除
                 devices = [];
                 saveDevices();
                 renderDevices();
                 renderInspectionRecords();
-                
+
                 // 重置展开状态
                 expandedCardIndex = -1;
                 expandedDates = {};
-                
+
                 alert('所有设备数据已成功删除！');
                 console.log('所有设备数据已删除');
-            } else {
-                alert('删除操作已取消。输入的确认文字不正确。');
             }
         }
     </script>
