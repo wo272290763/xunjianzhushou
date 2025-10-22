@@ -798,6 +798,10 @@
 
             // 从本地存储加载数据
             loadDevices();
+            
+            // 检查是否需要每日重置
+            checkAndResetDaily();
+            
             renderDevices();
             renderInspectionRecords();
 
@@ -898,6 +902,29 @@
             }
         }
 
+        // 检查并执行每日重置
+        function checkAndResetDaily() {
+            const today = getCurrentDate();
+            const lastResetDate = localStorage.getItem('lastResetDate');
+            
+            // 如果是新的一天，重置所有设备状态
+            if (lastResetDate !== today) {
+                console.log('新的一天，重置所有设备状态');
+                devices.forEach(device => {
+                    device.conditions.forEach(condition => {
+                        // 只重置状态，保留历史记录
+                        condition.status = 'pending';
+                    });
+                });
+                
+                // 保存重置后的状态和新的重置日期
+                saveDevices();
+                localStorage.setItem('lastResetDate', today);
+                
+                console.log('每日重置完成');
+            }
+        }
+
         // 从本地存储加载设备数据
         function loadDevices() {
             try {
@@ -920,10 +947,10 @@
                             lastInspectionDate: "2023-12-15",
                             inspectionCycle: 6,
                             conditions: [
-                                { name: "外观", status: "normal", remark: "", inspectionTime: "2024-06-25 09:25:00" },
-                                { name: "检定标签", status: "normal", remark: "", inspectionTime: "2024-06-25 09:27:00" },
-                                { name: "显示情况", status: "abnormal", remark: "显示屏有轻微闪烁", inspectionTime: "2024-06-25 09:32:00" },
-                                { name: "接地", status: "normal", remark: "", inspectionTime: "2024-06-25 09:30:00" }
+                                { name: "外观", status: "pending", remark: "", inspectionTime: "" },
+                                { name: "检定标签", status: "pending", remark: "", inspectionTime: "" },
+                                { name: "显示情况", status: "pending", remark: "", inspectionTime: "" },
+                                { name: "接地", status: "pending", remark: "", inspectionTime: "" }
                             ]
                         },
                         {
@@ -937,10 +964,10 @@
                             lastInspectionDate: "2024-01-10",
                             inspectionCycle: 12,
                             conditions: [
-                                { name: "外观", status: "normal", remark: "", inspectionTime: "2024-06-25 10:15:00" },
-                                { name: "检定标签", status: "normal", remark: "", inspectionTime: "2024-06-25 10:18:00" },
-                                { name: "显示情况", status: "normal", remark: "", inspectionTime: "2024-06-25 10:20:00" },
-                                { name: "接地", status: "normal", remark: "", inspectionTime: "2024-06-25 10:22:00" }
+                                { name: "外观", status: "pending", remark: "", inspectionTime: "" },
+                                { name: "检定标签", status: "pending", remark: "", inspectionTime: "" },
+                                { name: "显示情况", status: "pending", remark: "", inspectionTime: "" },
+                                { name: "接地", status: "pending", remark: "", inspectionTime: "" }
                             ]
                         }
                     ];
@@ -1416,11 +1443,11 @@
         function refreshAllDevices() {
             console.log('刷新所有当日设备的巡检状态');
             
-            const today = new Date().toISOString().split('T')[0]; // 获取今天的日期字符串
+            const today = getCurrentDate(); // 获取今天的日期字符串
 
             devices.forEach(device => {
                 device.conditions.forEach(condition => {
-                    // 检查该条件的巡检时间是否是今天
+                    // 检查该条件的巡检时间是否是今天 - 修复Bug 1：只清空当天的记录
                     if (condition.inspectionTime && condition.inspectionTime.startsWith(today)) {
                         condition.status = 'pending';
                         condition.remark = '';
@@ -1438,7 +1465,7 @@
         function confirmAllDevices() {
             console.log('确认所有设备的所有巡检项目');
             
-            const today = new Date().toISOString().split('T')[0]; // 获取今天的日期字符串
+            const today = getCurrentDate(); // 获取今天的日期字符串
 
             devices.forEach(device => {
                 device.conditions.forEach(condition => {
@@ -1460,7 +1487,7 @@
         function refreshSingleDevice(index) {
             console.log(`刷新设备 ${index} 的巡检状态`);
 
-            const today = new Date().toISOString().split('T')[0]; // 获取今天的日期字符串
+            const today = getCurrentDate(); // 获取今天的日期字符串
             
             devices[index].conditions.forEach(condition => {
                 // 只重置今天的数据
@@ -1707,6 +1734,15 @@
             return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         }
 
+        // 获取当前日期（仅日期部分）
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         // 渲染巡检记录
         function renderInspectionRecords() {
             console.log('开始渲染巡检记录');
@@ -1748,7 +1784,7 @@
             sortedDates.forEach(date => {
                 // 如果未初始化，默认展开今天和昨天的记录
                 if (expandedDates[date] === undefined) {
-                    const today = new Date().toISOString().split('T')[0];
+                    const today = getCurrentDate();
                     const yesterday = new Date();
                     yesterday.setDate(yesterday.getDate() - 1);
                     const yesterdayStr = yesterday.toISOString().split('T')[0];
@@ -1779,7 +1815,7 @@
                 recordsDiv.className = `space-y-3 ${expandedDates[date] ? '' : 'hidden'}`;
                 
                 // 计算该日期的设备巡检进度 - 修复：只在今天日期计算进度
-                const today = new Date().toISOString().split('T')[0];
+                const today = getCurrentDate();
                 
                 if (date === today) {
                     // 计算当天已巡检的设备数量
@@ -2005,6 +2041,22 @@
                 console.log('所有设备数据已删除');
             }
         }
+
+        // 为Android移植准备的文件访问权限申请
+        function requestFilePermission() {
+            // 在Android环境中，这里会调用原生API申请文件权限
+            console.log('申请文件访问权限...');
+            
+            // 检查是否在Android WebView中
+            if (window.AndroidInterface && typeof window.AndroidInterface.requestFilePermission === 'function') {
+                window.AndroidInterface.requestFilePermission();
+            } else {
+                console.log('非Android环境，跳过文件权限申请');
+            }
+        }
+
+        // 初始化时申请文件权限
+        requestFilePermission();
     </script>
 </body>
 </html>
