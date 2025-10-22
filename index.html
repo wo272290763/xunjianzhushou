@@ -1478,27 +1478,34 @@
             renderInspectionRecords();
         }
         
-        // 确认所有设备
-        function confirmAllDevices() {
-            console.log('确认所有设备的所有巡检项目');
-            
-            const today = getCurrentDate(); // 获取今天的日期字符串
+    // 确认所有设备
+    function confirmAllDevices() {
+        console.log('确认所有设备的所有巡检项目');
+        
+        const today = getCurrentDate(); // 获取今天的日期字符串
 
-            devices.forEach(device => {
-                device.conditions.forEach(condition => {
-                    // 只处理今天未巡检的项目
-                    if (condition.status === 'pending' || !condition.inspectionTime || !condition.inspectionTime.startsWith(today)) {
-                        condition.status = 'normal';
-                        condition.remark = '';
+        devices.forEach(device => {
+            device.conditions.forEach(condition => {
+                // 只处理今天未巡检的项目 - 修复Bug：不覆盖历史记录
+                const conditionDate = condition.inspectionTime ? condition.inspectionTime.split(' ')[0] : null;
+                const isToday = conditionDate === today;
+                
+                // 只有当条件未巡检或者是今天巡检的异常状态时，才更新状态
+                if (condition.status === 'pending' || (condition.status === 'abnormal' && isToday)) {
+                    condition.status = 'normal';
+                    condition.remark = '';
+                    // 只有在今天巡检的情况下才更新时间，避免覆盖历史记录
+                    if (!condition.inspectionTime || isToday) {
                         condition.inspectionTime = getCurrentDateTime();
                     }
-                });
+                }
             });
+        });
 
-            saveDevices();
-            renderDevices();
-            renderInspectionRecords();
-        }
+        saveDevices();
+        renderDevices();
+        renderInspectionRecords();
+    }
 
         // 刷新单个设备
         function refreshSingleDevice(index) {
