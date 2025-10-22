@@ -240,6 +240,18 @@
             .device-info-value {
                 @apply text-gray-800;
             }
+
+            /* 新增：为展开的卡片添加边框 */
+            .expanded-card {
+                border: 2px solid rgba(59, 130, 246, 0.5); /* 半透明蓝色边框 */
+            }
+
+            /* 深色模式下调整边框颜色 */
+            @media (prefers-color-scheme: dark) {
+                .expanded-card {
+                    border: 2px solid rgba(96, 165, 250, 0.7); /* 深色模式下使用更亮的蓝色 */
+                }
+            }
         }
     </style>
 </head>
@@ -259,6 +271,9 @@
                     <button id="add-device-btn" class="icon-btn fixed-size-btn" title="添加设备">
                         <i class="fa-solid fa-plus"></i>
                     </button>
+                    <button id="confirm-all-btn" class="icon-btn fixed-size-btn" title="确认所有">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
                     <button id="refresh-all-btn" class="icon-btn fixed-size-btn" title="刷新所有">
                         <i class="fa-solid fa-rotate"></i>
                     </button>
@@ -274,7 +289,7 @@
                 <div class="search-container">
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="search-input" class="search-input" placeholder="搜索计量器具名称或出厂编号...">
+                        <input type="text" id="search-input" class="search-input" placeholder="搜索计量器具名称、出厂编号或安装地点...">
                     </div>
                 </div>
                 
@@ -293,125 +308,7 @@
 
                 <!-- 设备列表容器 -->
                 <div id="devices-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <!-- 示例设备卡片 -->
-                    <div class="bg-white rounded-lg overflow-hidden device-card-shadow hover:shadow-md transition-all duration-300 relative">
-                        <div class="mini-progress-overlay" style="--progress: 75%"></div>
-                        <div class="mini-card-content p-1">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h3 class="text-base font-bold text-dark">注水岗官一联来水</h3>
-                                    <p class="text-gray-500 text-xs device-code">出厂编号: DEV-001</p>
-                                </div>
-                                <div class="flex space-x-1">
-                                    <button class="refresh-device text-dark bg-white/80 hover:bg-white rounded-full p-1 transition-colors fixed-size-btn" title="刷新设备状态">
-                                        <i class="fa-solid fa-rotate text-xs"></i>
-                                    </button>
-                                    <button class="edit-device text-dark bg-white/80 hover:bg-white rounded-full p-1 transition-colors fixed-size-btn" title="编辑设备信息">
-                                        <i class="fa-solid fa-pen text-xs"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- 新增：设备基本信息网格 -->
-                            <div class="device-info-grid mb-2">
-                                <div class="device-info-label">类别:</div>
-                                <div class="device-info-value">A类</div>
-                                
-                                <div class="device-info-label">安装地点:</div>
-                                <div class="device-info-value">注水岗官一联</div>
-                                
-                                <div class="device-info-label">规格型号:</div>
-                                <div class="device-info-value">PT100</div>
-                                
-                                <div class="device-info-label">生产厂家:</div>
-                                <div class="device-info-value">北京仪器厂</div>
-                                
-                                <div class="device-info-label">测量范围:</div>
-                                <div class="device-info-value">0-100℃</div>
-                            </div>
-                            
-                            <div class="mb-2 progress-container">
-                                <div class="flex justify-between text-xs mb-0.5 progress-text">
-                                    <span class="text-gray-600">巡检进度</span>
-                                    <span class="font-medium">75%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-primary h-1.5 rounded-full" style="width: 75%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-between space-x-1 mb-2 status-container">
-                                <div class="bg-green-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-normal mr-1"></div>
-                                    <span class="text-xs text-gray-700">3</span>
-                                </div>
-                                <div class="bg-red-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-abnormal mr-1"></div>
-                                    <span class="text-xs text-gray-700">1</span>
-                                </div>
-                                <div class="bg-gray-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-pending mr-1"></div>
-                                    <span class="text-xs text-gray-700">0</span>
-                                </div>
-                            </div>
-
-                            <div class="mb-2 inspection-info">
-                                <span class="text-xs text-gray-600">上次检定: 2023-12-15</span><br>
-                                <span class="text-xs text-gray-600">周期: 6 月</span><br>
-                                <span class="text-xs text-gray-600">下次检定: 2024-06-15</span>
-                            </div>
-                            <div class="mb-2 mini-inspection-info hidden"></div>
-                            
-                            <div class="space-y-1 conditions-container">
-                                <div class="condition-item p-1.5 bg-green-50 border border-green-100" data-index="0">
-                                    <div class="flex justify-between items-center">
-                                        <div class="flex items-center">
-                                            <div class="w-2.5 h-2.5 rounded-full bg-normal mr-1"></div>
-                                            <span class="text-xs text-gray-800">外观</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <span class="text-xs text-gray-500">09:25</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="condition-item p-1.5 bg-green-50 border border-green-100" data-index="1">
-                                    <div class="flex justify-between items-center">
-                                        <div class="flex items-center">
-                                            <div class="w-2.5 h-2.5 rounded-full bg-normal mr-1"></div>
-                                            <span class="text-xs text-gray-800">检定标签</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <span class="text-xs text-gray-500">09:27</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="condition-item p-1.5 bg-green-50 border border-green-100" data-index="2">
-                                    <div class="flex justify-between items-center">
-                                        <div class="flex items-center">
-                                            <div class="w-2.5 h-2.5 rounded-full bg-normal mr-1"></div>
-                                            <span class="text-xs text-gray-800">接地</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <span class="text-xs text-gray-500">09:30</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="condition-item p-1.5 bg-red-50 border border-red-100" data-index="3">
-                                    <div class="flex justify-between items-center">
-                                        <div class="flex items-center">
-                                            <div class="w-2.5 h-2.5 rounded-full bg-abnormal mr-1"></div>
-                                            <span class="text-xs text-gray-800 font-medium">显示情况</span>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>
-                                            <span class="text-xs text-gray-500">09:32</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>显示屏有轻微闪烁</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- 设备卡片由JS动态生成 -->
                 </div>
             </div>
 
@@ -424,48 +321,7 @@
                     </button>
                 </div>
                 <div id="inspection-records">
-                    <div class="mb-6">
-                        <div class="record-date">
-                            <span>2024-06-25</span>
-                            <i class="fa-solid fa-angle-down"></i>
-                        </div>
-                        <div class="space-y-3">
-                            <div class="mb-3">
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-gray-600">当日巡检进度</span>
-                                    <span class="font-medium">60% (6/10)</span>
-                                </div>
-                                <div class="date-progress-bar">
-                                    <div class="date-progress-fill" style="width: 60%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-white rounded-lg p-3 shadow-sm">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="font-medium">注水岗官一联来水 <span class="text-gray-500 text-sm">出厂编号: DEV-001</span></span>
-                                    <span class="text-gray-500 text-xs">09:32</span>
-                                </div>
-                                <div class="flex flex-wrap gap-1.5">
-                                    <div class="flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1"></div>
-                                        外观
-                                    </div>
-                                    <div class="flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1"></div>
-                                        检定标签
-                                    </div>
-                                    <div class="flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1"></div>
-                                        接地
-                                    </div>
-                                    <div class="flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-red-600 mr-1"></div>
-                                        显示情况
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- 巡检记录由JS动态生成 -->
                 </div>
             </div>
 
@@ -867,6 +723,7 @@
         let profileExportBtn, profileImportBtn, profileDeleteAllBtn;
         let topRightButtons; // 新增：顶部右侧按钮容器
         let searchInput; // 新增：搜索输入框
+        let confirmAllBtn; // 新增：确认所有按钮
 
         // 初始化应用
         document.addEventListener('DOMContentLoaded', () => {
@@ -935,6 +792,9 @@
             
             // 搜索输入框
             searchInput = document.getElementById('search-input');
+            
+            // 确认所有按钮
+            confirmAllBtn = document.getElementById('confirm-all-btn');
 
             // 从本地存储加载数据
             loadDevices();
@@ -956,6 +816,13 @@
             refreshAllBtn.addEventListener('click', () => {
                 if (confirm('确定要刷新所有设备的巡检状态吗？')) {
                     refreshAllDevices();
+                }
+            });
+            
+            // 确认所有按钮事件
+            confirmAllBtn.addEventListener('click', () => {
+                if (confirm('确定要将当天所有设备的所有巡检项目状态全部更改为已巡检吗？')) {
+                    confirmAllDevices();
                 }
             });
 
@@ -1105,7 +972,8 @@
             if (searchTerm) {
                 filteredDevices = devices.filter(device => 
                     device.name.toLowerCase().includes(searchTerm) || 
-                    (device.serialNumber && device.serialNumber.toLowerCase().includes(searchTerm))
+                    (device.serialNumber && device.serialNumber.toLowerCase().includes(searchTerm)) ||
+                    (device.location && device.location.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -1172,16 +1040,17 @@
 
             let miniInspectionInfo = isNearInspection ? `<span class="text-xs text-red-500">下次检定: ${nextInspectionDate} <i class="fa-solid fa-triangle-exclamation mr-1"></i></span>` : '';
 
-            // 新的卡片结构 - 包含蓝色遮罩层
+            // 新的卡片结构 - 完全重新设计，确保迷你卡片只显示6个元素
             card.innerHTML = `
                 <!-- 蓝色进度遮罩层 - 只在折叠时显示 -->
                 <div class="mini-progress-overlay" style="--progress: ${progress}%"></div>
                 
                 <div class="mini-card-content p-1">
+                    <!-- 迷你卡片内容 - 始终显示 -->
                     <div class="flex justify-between items-start mb-0">
                         <div>
                             <h3 class="text-base font-bold text-dark">${device.name}</h3>
-                            <p class="text-gray-500 text-xs device-code">出厂编号: ${device.serialNumber || '无'}</p>
+                            <p class="text-gray-500 text-xs device-code">${device.location}</p>
                         </div>
                         <div class="flex space-x-1">
                             <button class="refresh-device text-dark bg-white/80 hover:bg-white rounded-full p-1 transition-colors fixed-size-btn" title="刷新设备状态">
@@ -1193,73 +1062,78 @@
                         </div>
                     </div>
                     
-                    <!-- 新增：设备基本信息网格 -->
-                    <div class="device-info-grid mb-2">
-                        <div class="device-info-label">类别:</div>
-                        <div class="device-info-value">${device.category}</div>
-                        
-                        <div class="device-info-label">安装地点:</div>
-                        <div class="device-info-value">${device.location}</div>
-                        
-                        <div class="device-info-label">规格型号:</div>
-                        <div class="device-info-value">${device.model || '无'}</div>
-                        
-                        <div class="device-info-label">生产厂家:</div>
-                        <div class="device-info-value">${device.manufacturer || '无'}</div>
-                        
-                        <div class="device-info-label">测量范围:</div>
-                        <div class="device-info-value">${device.range || '无'}</div>
-                    </div>
-                    
-                    <div class="mb-2 progress-container">
-                        <div class="flex justify-between text-xs mb-0.5 progress-text">
-                            <span class="text-gray-600">巡检进度</span>
-                            <span class="font-medium">${progress}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-1.5">
-                            <div class="bg-primary h-1.5 rounded-full" style="width: ${progress}%"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-between space-x-1 mb-2 status-container">
-                        <div class="bg-green-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                            <div class="w-1.5 h-1.5 rounded-full bg-normal mr-1"></div>
-                            <span class="text-xs text-gray-700">${normalCount}</span>
-                        </div>
-                        <div class="bg-red-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                            <div class="w-1.5 h-1.5 rounded-full bg-abnormal mr-1"></div>
-                            <span class="text-xs text-gray-700">${abnormalCount}</span>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                            <div class="w-1.5 h-1.5 rounded-full bg-pending mr-1"></div>
-                            <span class="text-xs text-gray-700">${totalCount - normalCount - abnormalCount}</span>
-                        </div>
-                    </div>
-
-                    <div class="mb-2 inspection-info">
-                        ${inspectionInfo}
-                    </div>
-                    <div class="mb-0 mt-0 mini-inspection-info hidden">
+                    <!-- 检定日期提醒 - 只在折叠时显示 -->
+                    <div class="mini-inspection-info hidden">
                         ${miniInspectionInfo}
                     </div>
                     
-                    <div class="space-y-1 conditions-container">
-                        ${device.conditions.map((condition, condIndex) => `
-                            <div class="condition-item p-1.5 ${condition.status === 'pending' ? 'bg-gray-50' : condition.status === 'normal' ? 'bg-green-50' : 'bg-red-50'} border ${condition.status === 'pending' ? 'border-gray-100' : condition.status === 'normal' ? 'border-green-100' : 'border-red-100'}" 
-                                data-index="${condIndex}">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex items-center">
-                                        <div class="w-2.5 h-2.5 rounded-full ${condition.status === 'pending' ? 'bg-pending' : condition.status === 'normal' ? 'bg-normal' : 'bg-abnormal'} mr-1"></div>
-                                        <span class="text-xs text-gray-800 ${condition.status === 'abnormal' ? 'font-medium' : ''}">${condition.name}</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        ${condition.status === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
-                                        ${condition.inspectionTime ? `<span class="text-xs text-gray-500">${condition.inspectionTime.split(' ')[1].substr(0,5)}</span>` : ''}
-                                    </div>
-                                </div>
-                                ${condition.status === 'abnormal' ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
+                    <!-- 展开卡片内容 - 只在展开时显示 -->
+                    <div class="expanded-content hidden">
+                        <!-- 设备基本信息网格 -->
+                        <div class="device-info-grid mb-2">
+                            <div class="device-info-label">类别:</div>
+                            <div class="device-info-value">${device.category}</div>
+                            
+                            <div class="device-info-label">出厂编号:</div>
+                            <div class="device-info-value">${device.serialNumber || '无'}</div>
+                            
+                            <div class="device-info-label">规格型号:</div>
+                            <div class="device-info-value">${device.model || '无'}</div>
+                            
+                            <div class="device-info-label">生产厂家:</div>
+                            <div class="device-info-value">${device.manufacturer || '无'}</div>
+                            
+                            <div class="device-info-label">测量范围:</div>
+                            <div class="device-info-value">${device.range || '无'}</div>
+                        </div>
+                        
+                        <div class="mb-2 progress-container">
+                            <div class="flex justify-between text-xs mb-0.5 progress-text">
+                                <span class="text-gray-600">巡检进度</span>
+                                <span class="font-medium">${progress}%</span>
                             </div>
-                        `).join('')}
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-primary h-1.5 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between space-x-1 mb-2 status-container">
+                            <div class="bg-green-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
+                                <div class="w-1.5 h-1.5 rounded-full bg-normal mr-1"></div>
+                                <span class="text-xs text-gray-700">${normalCount}</span>
+                            </div>
+                            <div class="bg-red-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
+                                <div class="w-1.5 h-1.5 rounded-full bg-abnormal mr-1"></div>
+                                <span class="text-xs text-gray-700">${abnormalCount}</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
+                                <div class="w-1.5 h-1.5 rounded-full bg-pending mr-1"></div>
+                                <span class="text-xs text-gray-700">${totalCount - normalCount - abnormalCount}</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2 inspection-info">
+                            ${inspectionInfo}
+                        </div>
+                        
+                        <div class="space-y-1 conditions-container">
+                            ${device.conditions.map((condition, condIndex) => `
+                                <div class="condition-item p-1.5 ${condition.status === 'pending' ? 'bg-gray-50' : condition.status === 'normal' ? 'bg-green-50' : 'bg-red-50'} border ${condition.status === 'pending' ? 'border-gray-100' : condition.status === 'normal' ? 'border-green-100' : 'border-red-100'}" 
+                                    data-index="${condIndex}">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center">
+                                            <div class="w-2.5 h-2.5 rounded-full ${condition.status === 'pending' ? 'bg-pending' : condition.status === 'normal' ? 'bg-normal' : 'bg-abnormal'} mr-1"></div>
+                                            <span class="text-xs text-gray-800 ${condition.status === 'abnormal' ? 'font-medium' : ''}">${condition.name}</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            ${condition.status === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
+                                            ${condition.inspectionTime ? `<span class="text-xs text-gray-500">${condition.inspectionTime.split(' ')[1].substr(0,5)}</span>` : ''}
+                                        </div>
+                                    </div>
+                                    ${condition.status === 'abnormal' ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 </div>
             `;
@@ -1389,38 +1263,22 @@
 
         // 切换设备卡片状态
         function toggleDeviceCard(card, isExpanded) {
-            const conditionItems = card.querySelectorAll('.condition-item');
-            const progressText = card.querySelector('.progress-text');
-            const progressContainer = card.querySelector('.progress-container');
-            const statusContainer = card.querySelector('.status-container');
-            const inspectionInfo = card.querySelector('.inspection-info');
-            const deviceCode = card.querySelector('.device-code');
-            const miniInspectionInfo = card.querySelector('.mini-inspection-info');
             const progressOverlay = card.querySelector('.mini-progress-overlay');
-            const deviceInfoGrid = card.querySelector('.device-info-grid');
+            const miniInspectionInfo = card.querySelector('.mini-inspection-info');
+            const expandedContent = card.querySelector('.expanded-content');
             
             if (isExpanded) {
-                // 展开卡片
-                conditionItems.forEach(item => item.classList.remove('hidden'));
-                progressText.classList.remove('hidden');
-                progressContainer.classList.remove('hidden');
-                statusContainer.classList.remove('hidden');
-                inspectionInfo.classList.remove('hidden');
-                deviceCode.classList.remove('hidden');
-                miniInspectionInfo.classList.add('hidden');
+                // 展开卡片 - 显示完整信息
                 progressOverlay.classList.add('hidden'); // 隐藏蓝色遮罩
-                deviceInfoGrid.classList.remove('hidden'); // 显示设备信息网格
+                miniInspectionInfo.classList.add('hidden'); // 隐藏迷你检定提醒
+                expandedContent.classList.remove('hidden'); // 显示展开内容
+                card.classList.add('expanded-card'); // 添加边框样式
             } else {
-                // 折叠卡片
-                conditionItems.forEach(item => item.classList.add('hidden'));
-                progressText.classList.add('hidden');
-                progressContainer.classList.add('hidden');
-                statusContainer.classList.add('hidden');
-                inspectionInfo.classList.add('hidden');
-                deviceCode.classList.add('hidden');
-                miniInspectionInfo.classList.remove('hidden');
+                // 折叠卡片 - 只显示要求的6个元素
                 progressOverlay.classList.remove('hidden'); // 显示蓝色遮罩
-                deviceInfoGrid.classList.add('hidden'); // 隐藏设备信息网格
+                miniInspectionInfo.classList.remove('hidden'); // 显示迷你检定提醒
+                expandedContent.classList.add('hidden'); // 隐藏展开内容
+                card.classList.remove('expanded-card'); // 移除边框样式
             }
         }
 
@@ -1567,6 +1425,28 @@
                         condition.status = 'pending';
                         condition.remark = '';
                         condition.inspectionTime = '';
+                    }
+                });
+            });
+
+            saveDevices();
+            renderDevices();
+            renderInspectionRecords();
+        }
+        
+        // 确认所有设备
+        function confirmAllDevices() {
+            console.log('确认所有设备的所有巡检项目');
+            
+            const today = new Date().toISOString().split('T')[0]; // 获取今天的日期字符串
+
+            devices.forEach(device => {
+                device.conditions.forEach(condition => {
+                    // 只处理今天未巡检的项目
+                    if (condition.status === 'pending' || !condition.inspectionTime || !condition.inspectionTime.startsWith(today)) {
+                        condition.status = 'normal';
+                        condition.remark = '';
+                        condition.inspectionTime = getCurrentDateTime();
                     }
                 });
             });
@@ -1898,31 +1778,42 @@
                 const recordsDiv = document.createElement('div');
                 recordsDiv.className = `space-y-3 ${expandedDates[date] ? '' : 'hidden'}`;
                 
-                // 计算该日期的设备巡检进度
-                const totalDevices = devices.length;
-                // 获取当天有巡检记录的设备（去重）
-                const devicesWithRecords = new Set();
-                recordsByDate[date].forEach(record => {
-                    devicesWithRecords.add(record.device.name);
-                });
-                const completedDevices = devicesWithRecords.size;
+                // 计算该日期的设备巡检进度 - 修复：只在今天日期计算进度
+                const today = new Date().toISOString().split('T')[0];
                 
-                const progressPercent = Math.round((completedDevices / totalDevices) * 100);
-                
-                // 添加进度条
-                const progressBarHtml = `
-                    <div class="mb-3">
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-gray-600">当日巡检进度</span>
-                            <span class="font-medium">${progressPercent}% (${completedDevices}/${totalDevices})</span>
+                if (date === today) {
+                    // 计算当天已巡检的设备数量
+                    let completedDevices = 0;
+                    
+                    devices.forEach(device => {
+                        // 检查该设备在当天是否至少有一个条件已巡检
+                        const hasAnyConditionInspected = device.conditions.some(condition => {
+                            return condition.inspectionTime && condition.inspectionTime.startsWith(today);
+                        });
+                        
+                        if (hasAnyConditionInspected) {
+                            completedDevices++;
+                        }
+                    });
+                    
+                    const totalDevices = devices.length;
+                    const progressPercent = totalDevices > 0 ? Math.round((completedDevices / totalDevices) * 100) : 0;
+                    
+                    // 添加进度条
+                    const progressBarHtml = `
+                        <div class="mb-3">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-600">当日巡检进度</span>
+                                <span class="font-medium">${progressPercent}% (${completedDevices}/${totalDevices})</span>
+                            </div>
+                            <div class="date-progress-bar">
+                                <div class="date-progress-fill" style="width: ${progressPercent}%"></div>
+                            </div>
                         </div>
-                        <div class="date-progress-bar">
-                            <div class="date-progress-fill" style="width: ${progressPercent}%"></div>
-                        </div>
-                    </div>
-                `;
-                
-                recordsDiv.innerHTML = progressBarHtml;
+                    `;
+                    
+                    recordsDiv.innerHTML = progressBarHtml;
+                }
                 
                 // 按设备分组
                 const recordsByDevice = {};
@@ -1944,8 +1835,9 @@
                     
                     const deviceHeader = document.createElement('div');
                     deviceHeader.className = 'flex justify-between items-center mb-2';
+                    // 修改：删除"安装地点:"字符
                     deviceHeader.innerHTML = `
-                        <span class="font-medium">${record.device.name} <span class="text-gray-500 text-sm">出厂编号: ${record.device.serialNumber || ''}</span></span>
+                        <span class="font-medium">${record.device.name} <span class="text-gray-500 text-sm">${record.device.location || ''}</span></span>
                         <span class="text-gray-500 text-xs">${record.conditions[0].inspectionTime.split(' ')[1].substr(0,5)}</span>
                     `;
                     deviceDiv.appendChild(deviceHeader);
