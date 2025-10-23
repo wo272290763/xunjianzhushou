@@ -1160,22 +1160,29 @@
                         </div>
                         
                         <div class="space-y-1 conditions-container">
-                            ${device.conditions.map((condition, condIndex) => `
-                                <div class="condition-item p-1.5 ${condition.status === 'pending' ? 'bg-gray-50' : condition.status === 'normal' ? 'bg-green-50' : 'bg-red-50'} border ${condition.status === 'pending' ? 'border-gray-100' : condition.status === 'normal' ? 'border-green-100' : 'border-red-100'}" 
+                            ${device.conditions.map((condition, condIndex) => {
+                                // 修复：只显示今天的巡检状态，历史记录显示为灰色
+                                const isToday = condition.inspectionTime && condition.inspectionTime.startsWith(today);
+                                const displayStatus = isToday ? condition.status : 'pending';
+                                const timeDisplay = isToday ? condition.inspectionTime.split(' ')[1].substr(0,5) : '';
+                                
+                                return `
+                                <div class="condition-item p-1.5 ${displayStatus === 'pending' ? 'bg-gray-50' : displayStatus === 'normal' ? 'bg-green-50' : 'bg-red-50'} border ${displayStatus === 'pending' ? 'border-gray-100' : displayStatus === 'normal' ? 'border-green-100' : 'border-red-100'}" 
                                     data-index="${condIndex}">
                                     <div class="flex justify-between items-center">
                                         <div class="flex items-center">
-                                            <div class="w-2.5 h-2.5 rounded-full ${condition.status === 'pending' ? 'bg-pending' : condition.status === 'normal' ? 'bg-normal' : 'bg-abnormal'} mr-1"></div>
-                                            <span class="text-xs text-gray-800 ${condition.status === 'abnormal' ? 'font-medium' : ''}">${condition.name}</span>
+                                            <div class="w-2.5 h-2.5 rounded-full ${displayStatus === 'pending' ? 'bg-pending' : displayStatus === 'normal' ? 'bg-normal' : 'bg-abnormal'} mr-1"></div>
+                                            <span class="text-xs text-gray-800 ${displayStatus === 'abnormal' ? 'font-medium' : ''}">${condition.name}</span>
                                         </div>
                                         <div class="flex items-center">
-                                            ${condition.status === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
-                                            ${condition.inspectionTime && condition.inspectionTime.startsWith(today) ? `<span class="text-xs text-gray-500">${condition.inspectionTime.split(' ')[1].substr(0,5)}</span>` : ''}
+                                            ${displayStatus === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
+                                            ${timeDisplay ? `<span class="text-xs text-gray-500">${timeDisplay}</span>` : ''}
                                         </div>
                                     </div>
-                                    ${condition.status === 'abnormal' && condition.inspectionTime && condition.inspectionTime.startsWith(today) ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
+                                    ${displayStatus === 'abnormal' ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
                                 </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 </div>
