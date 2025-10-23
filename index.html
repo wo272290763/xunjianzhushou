@@ -1465,7 +1465,7 @@
             }
         }
 
-        // 刷新所有当日设备
+        // 刷新所有当日设备 - 修复：只影响当天记录
         function refreshAllDevices() {
             console.log('刷新所有当日设备的巡检状态');
             
@@ -1487,7 +1487,7 @@
             renderInspectionRecords();
         }
         
-        // 确认所有设备 - 修复Bug：正确作用于所有设备，不影响历史记录
+        // 确认所有设备 - 修复：只影响当天记录
         function confirmAllDevices() {
             console.log('确认所有设备的所有巡检项目');
             
@@ -1514,7 +1514,7 @@
             renderInspectionRecords();
         }
 
-        // 刷新单个设备
+        // 刷新单个设备 - 修复：只影响当天记录
         function refreshSingleDevice(index) {
             console.log(`刷新设备 ${index} 的巡检状态`);
 
