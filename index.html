@@ -1050,11 +1050,13 @@
             const today = getCurrentDate();
 
             device.conditions.forEach(condition => {
-                // 修复：只检查状态，不检查时间，因为状态已经代表当天的巡检状态
-                if (condition.status === 'normal') {
+                // 修复：只计算当天的巡检状态，且必须有巡检时间
+                const isToday = condition.inspectionTime && condition.inspectionTime.startsWith(today);
+                
+                if (condition.status === 'normal' && isToday) {
                     normalCount++;
                 }
-                if (condition.status === 'abnormal') {
+                if (condition.status === 'abnormal' && isToday) {
                     abnormalCount++;
                 }
             });
@@ -1168,10 +1170,10 @@
                                         </div>
                                         <div class="flex items-center">
                                             ${condition.status === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
-                                            ${condition.status !== 'pending' ? `<span class="text-xs text-gray-500">${condition.inspectionTime ? condition.inspectionTime.split(' ')[1].substr(0,5) : '今日'}</span>` : ''}
+                                            ${condition.inspectionTime && condition.inspectionTime.startsWith(today) ? `<span class="text-xs text-gray-500">${condition.inspectionTime.split(' ')[1].substr(0,5)}</span>` : ''}
                                         </div>
                                     </div>
-                                    ${condition.status === 'abnormal' ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
+                                    ${condition.status === 'abnormal' && condition.inspectionTime && condition.inspectionTime.startsWith(today) ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -1235,11 +1237,12 @@
 
                     console.log(`点击条件 ${condIndex}，状态从 ${devices[index].conditions[condIndex].status} 切换到 normal`);
 
-                    // 修复：无论当前状态如何，点击都更新为正常状态和时间
-                    const currentTime = getCurrentDateTime();
+                    // 修复：无论当前状态是什么，都设置为正常并记录时间
                     devices[index].conditions[condIndex].status = 'normal';
                     devices[index].conditions[condIndex].remark = '';
-                    devices[index].conditions[condIndex].inspectionTime = currentTime;
+                    devices[index].conditions[condIndex].inspectionTime = getCurrentDateTime();
+                    
+                    console.log(`更新条件时间: ${devices[index].conditions[condIndex].inspectionTime}`);
                     
                     saveDevices();
                     renderDevices();
@@ -1254,15 +1257,17 @@
                     console.log(`长按条件 ${condIndex}，准备切换到异常状态`);
 
                     longPressTimer = setTimeout(() => {
-                        const currentTime = getCurrentDateTime();
                         devices[index].conditions[condIndex].status = 'abnormal';
                         currentDeviceId = index;
                         currentConditionIndex = condIndex;
-                        devices[index].conditions[condIndex].inspectionTime = currentTime;
-                        openRemarkModal(devices[index].conditions[condIndex].name);
+                        devices[index].conditions[condIndex].inspectionTime = getCurrentDateTime();
+                        
+                        console.log(`更新条件时间: ${devices[index].conditions[condIndex].inspectionTime}`);
+                        
                         saveDevices();
                         renderDevices();
                         renderInspectionRecords();
+                        openRemarkModal(devices[index].conditions[condIndex].name);
                     }, 500); // 500ms 长按识别
                 });
 
@@ -1272,15 +1277,17 @@
                     console.log(`鼠标按下条件 ${condIndex}，准备切换到异常状态`);
 
                     longPressTimer = setTimeout(() => {
-                        const currentTime = getCurrentDateTime();
                         devices[index].conditions[condIndex].status = 'abnormal';
                         currentDeviceId = index;
                         currentConditionIndex = condIndex;
-                        devices[index].conditions[condIndex].inspectionTime = currentTime;
-                        openRemarkModal(devices[index].conditions[condIndex].name);
+                        devices[index].conditions[condIndex].inspectionTime = getCurrentDateTime();
+                        
+                        console.log(`更新条件时间: ${devices[index].conditions[condIndex].inspectionTime}`);
+                        
                         saveDevices();
                         renderDevices();
                         renderInspectionRecords();
+                        openRemarkModal(devices[index].conditions[condIndex].name);
                     }, 500); // 500ms 长按识别
                 });
 
@@ -1760,14 +1767,11 @@
             return `${year}-${month}-${day}`;
         }
 
-        // 获取最近巡检时间 - 修复：优先显示当天的巡检时间
+        // 获取最近巡检时间 - 修改为返回日期和时间分开的对象
         function getLastInspectionTime(device) {
             let lastTime = null;
-            const today = getCurrentDate();
-            
-            // 首先查找今天的巡检记录
             device.conditions.forEach(condition => {
-                if (condition.inspectionTime && condition.inspectionTime.startsWith(today)) {
+                if (condition.inspectionTime) {
                     const time = new Date(condition.inspectionTime);
                     if (!lastTime || time > lastTime) {
                         lastTime = time;
@@ -1785,32 +1789,10 @@
                     time: `${hours}:${minutes}`
                 };
             } else {
-                // 如果没有今天的记录，查找任何日期的记录
-                let anyInspectionTime = null;
-                device.conditions.forEach(condition => {
-                    if (condition.inspectionTime) {
-                        const time = new Date(condition.inspectionTime);
-                        if (!anyInspectionTime || time > anyInspectionTime) {
-                            anyInspectionTime = time;
-                        }
-                    }
-                });
-                
-                if (anyInspectionTime) {
-                    const month = String(anyInspectionTime.getMonth() + 1).padStart(2, '0');
-                    const day = String(anyInspectionTime.getDate()).padStart(2, '0');
-                    const hours = String(anyInspectionTime.getHours()).padStart(2, '0');
-                    const minutes = String(anyInspectionTime.getMinutes()).padStart(2, '0');
-                    return {
-                        date: `${month}.${day}`,
-                        time: `${hours}:${minutes}`
-                    };
-                } else {
-                    return {
-                        date: '暂无',
-                        time: '巡检'
-                    };
-                }
+                return {
+                    date: '暂无',
+                    time: '巡检'
+                };
             }
         }
 
@@ -2008,7 +1990,7 @@
             devices.forEach(device => {
                 const conditions = device.conditions.map(c => c.name).join(';');
                 exportText += `${device.name},${device.category},${device.location},${device.model || ''},${device.manufacturer || ''},${device.serialNumber || ''},${device.inspectionCycle},${device.range || ''},${device.lastInspectionDate},${conditions}\n`;
-            };
+            });
             
             const blob = new Blob([exportText], {type: 'text/plain;charset=utf-8'});
             const url = URL.createObjectURL(blob);
