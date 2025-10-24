@@ -912,28 +912,34 @@
                 console.log('新的一天，重置所有设备状态');
                 devices.forEach(device => {
                     device.conditions.forEach(condition => {
-                        // 修复Bug：只重置当前状态，不删除历史记录
-                        // 保存历史记录
+                        // 修复：确保正确保存历史记录
                         if (!condition.history) {
                             condition.history = [];
                         }
                         
-                        // 如果今天有巡检记录，保存到历史记录
-                        const todayRecord = {
-                            date: today,
-                            status: condition.status,
-                            remark: condition.remark,
-                            inspectionTime: condition.inspectionTime
-                        };
+                        // 检查昨天是否有巡检记录需要保存
+                        const yesterday = new Date();
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const yesterdayStr = yesterday.toISOString().split('T')[0];
                         
-                        // 检查是否已经存在今天的历史记录
-                        const existingIndex = condition.history.findIndex(h => h.date === today);
-                        if (existingIndex !== -1) {
-                            // 更新现有记录
-                            condition.history[existingIndex] = todayRecord;
-                        } else {
-                            // 添加新记录
-                            condition.history.push(todayRecord);
+                        // 如果昨天有巡检记录且状态不是待巡检，保存到历史记录
+                        if (condition.inspectionTime && condition.inspectionTime.startsWith(yesterdayStr) && condition.status !== 'pending') {
+                            const historyRecord = {
+                                date: yesterdayStr,
+                                status: condition.status,
+                                remark: condition.remark,
+                                inspectionTime: condition.inspectionTime
+                            };
+                            
+                            // 检查是否已经存在昨天的历史记录
+                            const existingIndex = condition.history.findIndex(h => h.date === yesterdayStr);
+                            if (existingIndex !== -1) {
+                                // 更新现有记录
+                                condition.history[existingIndex] = historyRecord;
+                            } else {
+                                // 添加新记录
+                                condition.history.push(historyRecord);
+                            }
                         }
                         
                         // 重置当前状态为待巡检
@@ -1105,7 +1111,7 @@
             const nextInspectionDate = getNextInspectionDate(device.lastInspectionDate, device.inspectionCycle);
             const isNearInspection = isWithinTenDays(nextInspectionDate);
 
-            // 获取最近巡检时间 - 修改：增加是否为今日的判断
+            // 获取最近巡检时间 - 修复问题1：同时检查历史记录
             const lastInspectionTime = getLastInspectionTime(device);
 
             let inspectionInfo = `
@@ -1130,7 +1136,7 @@
                         </div>
                         <div class="flex items-center space-x-1 ml-2 flex-shrink-0">
                             <!-- 上次巡检时间 - 修改：根据是否为今日设置颜色 -->
-                            <div class="text-right ${lastInspectionTime.isToday ? 'text-green-600' : 'text-red-600'} whitespace-nowrap mr-1">
+                            <div class="text-right ${lastInspectionTime.isToday ? 'text-green-600' : lastInspectionTime.hasHistory ? 'text-blue-600' : 'text-red-600'} whitespace-nowrap mr-1">
                                 <div class="text-xs leading-none">${lastInspectionTime.time}</div>
                                 <div class="text-xs leading-none">${lastInspectionTime.date}</div>
                             </div>
@@ -1814,9 +1820,13 @@
             return `${year}-${month}-${day}`;
         }
 
-        // 获取最近巡检时间 - 修改：增加是否为今日的判断
+        // 获取最近巡检时间 - 修复问题1：同时检查历史记录
         function getLastInspectionTime(device) {
             let lastTime = null;
+            let isToday = false;
+            let hasHistory = false;
+            
+            // 首先检查当前状态的时间
             device.conditions.forEach(condition => {
                 if (condition.inspectionTime) {
                     const time = new Date(condition.inspectionTime);
@@ -1826,9 +1836,26 @@
                 }
             });
             
+            // 如果没有当前状态的时间，检查历史记录
+            if (!lastTime) {
+                device.conditions.forEach(condition => {
+                    if (condition.history && condition.history.length > 0) {
+                        condition.history.forEach(historyRecord => {
+                            if (historyRecord.inspectionTime) {
+                                const time = new Date(historyRecord.inspectionTime);
+                                if (!lastTime || time > lastTime) {
+                                    lastTime = time;
+                                    hasHistory = true;
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            
             if (lastTime) {
                 const today = new Date();
-                const isToday = lastTime.toDateString() === today.toDateString();
+                isToday = lastTime.toDateString() === today.toDateString();
                 const month = String(lastTime.getMonth() + 1).padStart(2, '0');
                 const day = String(lastTime.getDate()).padStart(2, '0');
                 const hours = String(lastTime.getHours()).padStart(2, '0');
@@ -1836,18 +1863,20 @@
                 return {
                     date: isToday ? '今日' : `${month}.${day}`,
                     time: `${hours}:${minutes}`,
-                    isToday: isToday
+                    isToday: isToday,
+                    hasHistory: hasHistory
                 };
             } else {
                 return {
                     date: '暂无',
                     time: '巡检',
-                    isToday: false
+                    isToday: false,
+                    hasHistory: false
                 };
             }
         }
 
-        // 渲染巡检记录 - 修复Bug：正确显示历史记录状态
+        // 渲染巡检记录 - 修复问题2：为每个日期添加进度显示
         function renderInspectionRecords() {
             console.log('开始渲染巡检记录');
 
@@ -1857,44 +1886,47 @@
                 return;
             }
 
-            // 按日期分组
-            const recordsByDate = {};
+            // 收集所有历史记录
+            const allRecords = [];
             
             devices.forEach(device => {
                 device.conditions.forEach(condition => {
-                    // 修复Bug：从历史记录中获取所有日期的记录
+                    // 收集历史记录
                     if (condition.history && condition.history.length > 0) {
-                        condition.history.forEach(historyRecord => {
-                            const date = historyRecord.date;
-                            if (!recordsByDate[date]) {
-                                recordsByDate[date] = [];
-                            }
-                            recordsByDate[date].push({
+                        condition.history.forEach(record => {
+                            allRecords.push({
                                 device: device,
                                 condition: condition,
-                                historyRecord: historyRecord
+                                date: record.date,
+                                status: record.status,
+                                remark: record.remark,
+                                inspectionTime: record.inspectionTime
                             });
                         });
                     }
                     
-                    // 也包含当天的记录（如果存在）
-                    if (condition.inspectionTime) {
-                        const date = condition.inspectionTime.split(' ')[0];
-                        if (!recordsByDate[date]) {
-                            recordsByDate[date] = [];
-                        }
-                        recordsByDate[date].push({
+                    // 收集当前记录（如果是今天且已巡检）
+                    const today = getCurrentDate();
+                    if (condition.inspectionTime && condition.inspectionTime.startsWith(today) && condition.status !== 'pending') {
+                        allRecords.push({
                             device: device,
                             condition: condition,
-                            historyRecord: {
-                                date: date,
-                                status: condition.status,
-                                remark: condition.remark,
-                                inspectionTime: condition.inspectionTime
-                            }
+                            date: today,
+                            status: condition.status,
+                            remark: condition.remark,
+                            inspectionTime: condition.inspectionTime
                         });
                     }
                 });
+            });
+            
+            // 按日期分组
+            const recordsByDate = {};
+            allRecords.forEach(record => {
+                if (!recordsByDate[record.date]) {
+                    recordsByDate[record.date] = [];
+                }
+                recordsByDate[record.date].push(record);
             });
             
             // 按日期排序
@@ -1925,7 +1957,7 @@
                 const dateHeader = document.createElement('div');
                 dateHeader.className = 'record-date';
                 dateHeader.innerHTML = `
-                    <span>${date}</span>
+                    <span>${formatDisplayDate(date)}</span>
                     <i class="fa-solid ${expandedDates[date] ? 'fa-angle-down' : 'fa-angle-right'}"></i>
                 `;
                 
@@ -1940,54 +1972,51 @@
                 const recordsDiv = document.createElement('div');
                 recordsDiv.className = `space-y-3 ${expandedDates[date] ? '' : 'hidden'}`;
                 
-                // 计算该日期的设备巡检进度 - 修复：只在今天日期计算进度
-                const today = getCurrentDate();
+                // 修复问题2：为每个日期都添加进度显示
+                // 计算该日期的设备巡检进度
+                const inspectedDevices = new Set();
+                const dateRecords = recordsByDate[date] || [];
                 
-                if (date === today) {
-                    // 计算当天已巡检的设备数量
-                    let completedDevices = 0;
-                    
-                    devices.forEach(device => {
-                        // 检查该设备在当天是否至少有一个条件已巡检
-                        const hasAnyConditionInspected = device.conditions.some(condition => {
-                            return condition.inspectionTime && condition.inspectionTime.startsWith(today);
-                        });
-                        
-                        if (hasAnyConditionInspected) {
-                            completedDevices++;
-                        }
-                    });
-                    
-                    const totalDevices = devices.length;
-                    const progressPercent = totalDevices > 0 ? Math.round((completedDevices / totalDevices) * 100) : 0;
-                    
-                    // 添加进度条
-                    const progressBarHtml = `
-                        <div class="mb-3">
-                            <div class="flex justify-between text-xs mb-1">
-                                <span class="text-gray-600">当日巡检进度</span>
-                                <span class="font-medium">${progressPercent}% (${completedDevices}/${totalDevices})</span>
-                            </div>
-                            <div class="date-progress-bar">
-                                <div class="date-progress-fill" style="width: ${progressPercent}%"></div>
-                            </div>
+                dateRecords.forEach(record => {
+                    inspectedDevices.add(record.device.name + record.device.serialNumber);
+                });
+                
+                const totalDevices = devices.length;
+                const completedDevices = inspectedDevices.size;
+                const progressPercent = totalDevices > 0 ? Math.round((completedDevices / totalDevices) * 100) : 0;
+                
+                // 添加进度条
+                const progressBarHtml = `
+                    <div class="mb-3">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-600">当日巡检进度</span>
+                            <span class="font-medium">${progressPercent}% (${completedDevices}/${totalDevices})</span>
                         </div>
-                    `;
-                    
-                    recordsDiv.innerHTML = progressBarHtml;
-                }
+                        <div class="date-progress-bar">
+                            <div class="date-progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                `;
+                
+                recordsDiv.innerHTML = progressBarHtml;
                 
                 // 按设备分组
                 const recordsByDevice = {};
-                recordsByDate[date].forEach(record => {
+                dateRecords.forEach(record => {
                     const deviceId = record.device.name + record.device.serialNumber;
                     if (!recordsByDevice[deviceId]) {
                         recordsByDevice[deviceId] = {
                             device: record.device,
-                            conditions: []
+                            conditions: {}
                         };
                     }
-                    recordsByDevice[deviceId].conditions.push(record.historyRecord);
+                    
+                    // 记录每个条件的状态
+                    recordsByDevice[deviceId].conditions[record.condition.name] = {
+                        status: record.status,
+                        remark: record.remark,
+                        inspectionTime: record.inspectionTime
+                    };
                 });
                 
                 // 渲染每个设备的记录
@@ -1995,26 +2024,32 @@
                     const deviceDiv = document.createElement('div');
                     deviceDiv.className = 'bg-white rounded-lg p-3 shadow-sm';
                     
+                    // 查找该设备在这一天的最晚巡检时间
+                    let latestTime = '';
+                    Object.values(record.conditions).forEach(conditionRecord => {
+                        if (conditionRecord.inspectionTime) {
+                            const time = conditionRecord.inspectionTime.split(' ')[1]?.substr(0, 5) || '';
+                            if (time > latestTime) {
+                                latestTime = time;
+                            }
+                        }
+                    });
+                    
                     const deviceHeader = document.createElement('div');
                     deviceHeader.className = 'flex justify-between items-center mb-2';
-                    // 修改：删除"安装地点:"字符
                     deviceHeader.innerHTML = `
                         <span class="font-medium">${record.device.name} <span class="text-gray-500 text-sm">${record.device.location || ''}</span></span>
-                        <span class="text-gray-500 text-xs">${record.conditions[0].inspectionTime.split(' ')[1].substr(0,5)}</span>
+                        ${latestTime ? `<span class="text-gray-500 text-xs">${latestTime}</span>` : ''}
                     `;
                     deviceDiv.appendChild(deviceHeader);
                     
                     const conditionsDiv = document.createElement('div');
                     conditionsDiv.className = 'flex flex-wrap gap-1.5';
                     
-                    // 显示所有巡检项目状态 - 修复Bug：使用历史记录中的实际状态
+                    // 显示设备的所有条件状态
                     record.device.conditions.forEach(deviceCondition => {
-                        // 查找该设备条件在指定日期的历史记录
-                        const foundHistory = record.conditions.find(c => 
-                            deviceCondition.name === record.device.conditions.find(dc => dc.name === deviceCondition.name).name
-                        );
-                        
-                        const status = foundHistory ? foundHistory.status : 'pending';
+                        const conditionRecord = record.conditions[deviceCondition.name];
+                        const status = conditionRecord ? conditionRecord.status : 'pending';
                         
                         const conditionItem = document.createElement('div');
                         conditionItem.className = `flex items-center px-2 py-1 rounded-full text-xs ${
@@ -2030,6 +2065,12 @@
                             } mr-1"></div>
                             ${deviceCondition.name}
                         `;
+                        
+                        // 添加提示信息
+                        if (status === 'abnormal' && conditionRecord && conditionRecord.remark) {
+                            conditionItem.title = `异常描述: ${conditionRecord.remark}`;
+                        }
+                        
                         conditionsDiv.appendChild(conditionItem);
                     });
                     
@@ -2042,6 +2083,25 @@
             });
 
             console.log('巡检记录渲染完成');
+        }
+        
+        // 新增：格式化显示日期
+        function formatDisplayDate(dateStr) {
+            const today = getCurrentDate();
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            
+            if (dateStr === today) {
+                return '今天';
+            } else if (dateStr === yesterdayStr) {
+                return '昨天';
+            } else {
+                const date = new Date(dateStr);
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${date.getFullYear()}-${month}-${day}`;
+            }
         }
         
         // 切换所有记录折叠状态
