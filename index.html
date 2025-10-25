@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>巡检助手 - 专业设备巡检管理工具</title>
-	
-	<!-- 标准OG标签 - 适配Facebook、LinkedIn等 -->
+    
+    <!-- 标准OG标签 - 适配Facebook、LinkedIn等 -->
     <meta property="og:title" content="巡检助手 - 专业设备巡检管理工具" />
     <meta property="og:description" content="高效管理设备巡检任务，实时记录设备状态，自动生成巡检报告，支持移动端操作" />
     <meta property="og:image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg?v=2" />
@@ -47,9 +47,9 @@
     <meta name="twitter:description" content="便捷管理设备巡检任务，记录设备状态，生成巡检报告">
     <meta name="twitter:image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg">
     <meta name="twitter:site" content="@yourtwitterhandle">
-	
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 修复：使用更可靠的Font Awesome CDN -->
+    <!-- 使用可靠的Font Awesome CDN -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -147,7 +147,7 @@
             .bottom-nav {
                 @apply fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200;
                 height: 60px;
-                z-index: 40; /* 确保在内容之上 */
+                z-index: 40;
             }
             
             .nav-btn {
@@ -171,7 +171,7 @@
                 justify-content: center;
             }
             
-            /* 新的迷你卡片进度条样式 - 修复问题1：调整透明度 */
+            /* 新的迷你卡片进度条样式 */
             .mini-progress-overlay {
                 @apply absolute inset-0 z-0 rounded-lg;
                 background: linear-gradient(90deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.25) var(--progress), transparent var(--progress), transparent 100%);
@@ -182,7 +182,7 @@
                 @apply relative z-10;
             }
 
-            /* 深色模式适配 - 修复问题2 */
+            /* 深色模式适配 */
             @media (prefers-color-scheme: dark) {
                 .mini-progress-overlay {
                     background: linear-gradient(90deg, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0.4) var(--progress), transparent var(--progress), transparent 100%);
@@ -219,7 +219,7 @@
                 @apply text-center py-8 text-gray-500;
             }
             
-            /* 修复：确保所有图标可见 */
+            /* 确保所有图标可见 */
             .fa {
                 display: inline-block !important;
                 font-style: normal !important;
@@ -228,7 +228,7 @@
                 -webkit-font-smoothing: antialiased !important;
             }
             
-            /* 新增：设备信息网格布局 */
+            /* 设备信息网格布局 */
             .device-info-grid {
                 @apply grid grid-cols-2 gap-x-2 gap-y-1 text-xs;
             }
@@ -241,22 +241,83 @@
                 @apply text-gray-800;
             }
 
-            /* 新增：为展开的卡片添加边框 */
+            /* 为展开的卡片添加边框 */
             .expanded-card {
-                border: 2px solid rgba(59, 130, 246, 0.5); /* 半透明蓝色边框 */
+                border: 2px solid rgba(59, 130, 246, 0.5);
             }
 
             /* 深色模式下调整边框颜色 */
             @media (prefers-color-scheme: dark) {
                 .expanded-card {
-                    border: 2px solid rgba(96, 165, 250, 0.7); /* 深色模式下使用更亮的蓝色 */
+                    border: 2px solid rgba(96, 165, 250, 0.7);
                 }
+            }
+            
+            /* 新增：加载指示器 */
+            .loading-spinner {
+                @apply inline-block w-4 h-4 border-2 border-solid border-current border-r-transparent rounded-full animate-spin;
+            }
+            
+            /* 新增：长按反馈样式 */
+            .condition-item.long-press-active {
+                @apply bg-blue-100 border-blue-300;
+            }
+            
+            /* 新增：兼容性样式 */
+            .backdrop-blur-support {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+            
+            /* 新增：触摸友好的按钮 */
+            .touch-button {
+                @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+            }
+            
+            /* 新增：错误提示样式 */
+            .error-message {
+                @apply text-red-500 text-sm mt-1;
+            }
+            
+            /* 新增：成功提示样式 */
+            .success-message {
+                @apply text-green-500 text-sm mt-1;
+            }
+            
+            /* 新增：状态指示器 */
+            .status-indicator {
+                @apply w-2.5 h-2.5 rounded-full mr-1;
+            }
+            
+            .status-pending {
+                @apply bg-pending;
+            }
+            
+            .status-normal {
+                @apply bg-normal;
+            }
+            
+            .status-abnormal {
+                @apply bg-abnormal;
+            }
+
+            /* 新增：操作反馈样式 */
+            .operation-feedback {
+                @apply fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transform transition-all duration-300;
             }
         }
     </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen font-sans pb-16">
+    <!-- 加载指示器 -->
+    <div id="loading-indicator" class="fixed inset-0 bg-white/80 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl p-6 flex items-center space-x-3">
+            <div class="loading-spinner"></div>
+            <span class="text-gray-700">加载中...</span>
+        </div>
+    </div>
+
     <div class="max-w-6xl mx-auto px-4 py-4">
         <!-- 顶部标题栏 -->
         <header class="mb-4">
@@ -268,13 +329,13 @@
                     </h1>
                 </div>
                 <div class="flex space-x-2" id="top-right-buttons">
-                    <button id="add-device-btn" class="icon-btn fixed-size-btn" title="添加设备">
+                    <button id="add-device-btn" class="icon-btn fixed-size-btn touch-button" title="添加设备">
                         <i class="fa-solid fa-plus"></i>
                     </button>
-                    <button id="confirm-all-btn" class="icon-btn fixed-size-btn" title="确认所有">
+                    <button id="confirm-all-btn" class="icon-btn fixed-size-btn touch-button" title="确认所有">
                         <i class="fa-solid fa-check"></i>
                     </button>
-                    <button id="refresh-all-btn" class="icon-btn fixed-size-btn" title="刷新所有">
+                    <button id="refresh-all-btn" class="icon-btn fixed-size-btn touch-button" title="刷新所有">
                         <i class="fa-solid fa-rotate"></i>
                     </button>
                 </div>
@@ -301,7 +362,7 @@
                     <h2 class="text-xl font-semibold text-gray-700 mb-2">暂无巡检设备</h2>
                     <p class="text-gray-500 mb-6">点击上方"+"按钮开始创建巡检任务</p>
                     <button id="empty-add-btn"
-                        class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-medium btn-hover-effect">
+                        class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-medium btn-hover-effect touch-button">
                         <i class="fa-solid fa-plus mr-1"></i>添加第一个设备
                     </button>
                 </div>
@@ -316,7 +377,7 @@
             <div id="inspection-records-page" class="hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold text-gray-700">巡检记录</h2>
-                    <button id="toggle-all-records" class="text-sm text-primary hover:text-primary/80">
+                    <button id="toggle-all-records" class="text-sm text-primary hover:text-primary/80 touch-button">
                         <i class="fa-solid fa-angle-double-down mr-1"></i>展开/收起所有
                     </button>
                 </div>
@@ -380,22 +441,22 @@
                     
                     <!-- 新增的导入导出按钮 -->
                     <div class="space-y-4">
-                        <button id="profile-export-btn" class="profile-card-btn bg-blue-500 text-white">
+                        <button id="profile-export-btn" class="profile-card-btn bg-blue-500 text-white touch-button">
                             <i class="fa-solid fa-download"></i>
                             导出数据
                         </button>
-                        <button id="profile-import-btn" class="profile-card-btn bg-blue-500 text-white">
+                        <button id="profile-import-btn" class="profile-card-btn bg-blue-500 text-white touch-button">
                             <i class="fa-solid fa-upload"></i>
                             导入数据
                         </button>
                         <!-- 新增：删除所有设备按钮 -->
-                        <button id="profile-delete-all-btn" class="profile-card-btn bg-red-500 text-white">
+                        <button id="profile-delete-all-btn" class="profile-card-btn bg-red-500 text-white touch-button">
                             <i class="fa-solid fa-trash"></i>
                             删除所有设备
                         </button>
                     </div>
                     
-                    <button class="mt-6 w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    <button class="mt-6 w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors touch-button">
                         退出登录
                     </button>
                 </div>
@@ -406,15 +467,15 @@
     <!-- 底部导航栏 -->
     <div class="bottom-nav">
         <div class="max-w-6xl mx-auto h-full flex justify-around">
-            <button id="nav-device-list" class="nav-btn active" data-page="device-list-page">
+            <button id="nav-device-list" class="nav-btn active touch-button" data-page="device-list-page">
                 <i class="fa-solid fa-list"></i>
                 <span>设备列表</span>
             </button>
-            <button id="nav-records" class="nav-btn" data-page="inspection-records-page">
+            <button id="nav-records" class="nav-btn touch-button" data-page="inspection-records-page">
                 <i class="fa-solid fa-history"></i>
                 <span>巡检记录</span>
             </button>
-            <button id="nav-profile" class="nav-btn" data-page="profile-page">
+            <button id="nav-profile" class="nav-btn touch-button" data-page="profile-page">
                 <i class="fa-solid fa-user"></i>
                 <span>个人中心</span>
             </button>
@@ -428,7 +489,7 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-dark">添加巡检设备</h3>
-                    <button id="close-modal" class="text-gray-400 hover:text-gray-600 fixed-size-btn">
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-600 fixed-size-btn touch-button">
                         <i class="fa-solid fa-times text-xl"></i>
                     </button>
                 </div>
@@ -440,6 +501,7 @@
                             <input type="text" id="device-name"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 placeholder="请输入计量器具名称" required>
+                            <div id="device-name-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-4">
                             <label for="device-category" class="block text-sm font-medium text-gray-700 mb-1">类别 <span
@@ -452,6 +514,7 @@
                                 <option value="B类">B类</option>
                                 <option value="C类">C类</option>
                             </select>
+                            <div id="device-category-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-4">
                             <label for="device-location" class="block text-sm font-medium text-gray-700 mb-1">安装地点 <span
@@ -459,6 +522,7 @@
                             <input type="text" id="device-location"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 placeholder="请输入安装地点" required>
+                            <div id="device-location-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-4">
                             <label for="device-model" class="block text-sm font-medium text-gray-700 mb-1">规格型号</label>
@@ -481,9 +545,10 @@
                         <div class="mb-4">
                             <label for="inspection-cycle" class="block text-sm font-medium text-gray-700 mb-1">检定周期（月） <span
                                     class="text-red-500">*</span></label>
-                            <input type="number" id="inspection-cycle"
+                            <input type="number" id="inspection-cycle" min="1" max="60"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 placeholder="请输入检定周期（月）" required>
+                            <div id="inspection-cycle-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-4">
                             <label for="device-range" class="block text-sm font-medium text-gray-700 mb-1">测量范围</label>
@@ -497,6 +562,7 @@
                             <input type="date" id="last-inspection-date"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 required>
+                            <div id="last-inspection-date-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">巡检项目 <span
@@ -506,7 +572,7 @@
                                     <input type="text"
                                         class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                         required>
-                                    <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn">
+                                    <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn touch-button">
                                         <i class="fa-solid fa-minus-circle"></i>
                                     </button>
                                 </div>
@@ -516,25 +582,26 @@
                             <div class="mt-2 mb-3">
                                 <p class="text-xs text-gray-500 mb-2">点击添加预设项目：</p>
                                 <div class="flex flex-wrap gap-2">
-                                    <button type="button" class="preset-btn" data-condition="外观">外观</button>
-                                    <button type="button" class="preset-btn" data-condition="检定标签">检定标签</button>
-                                    <button type="button" class="preset-btn" data-condition="显示情况">显示情况</button>
-                                    <button type="button" class="preset-btn" data-condition="接地">接地</button>
-                                    <button type="button" class="preset-btn" data-condition="上限标识">上限标识</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="外观">外观</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="检定标签">检定标签</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="显示情况">显示情况</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="接地">接地</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="上限标识">上限标识</button>
                                 </div>
                             </div>
                             
                             <button type="button" id="add-condition-btn"
-                                class="mt-2 text-primary hover:text-primary/80 text-sm flex items-center">
+                                class="mt-2 text-primary hover:text-primary/80 text-sm flex items-center touch-button">
                                 <i class="fa-solid fa-plus-circle mr-1"></i> 添加自定义项目
                             </button>
                             <p class="text-xs text-gray-500 mt-2">可添加1-5个巡检项目</p>
+                            <div id="conditions-error" class="error-message hidden"></div>
                         </div>
                         <div class="flex justify-end">
                             <button type="button" id="cancel-add-device"
-                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 mr-3 hover:bg-gray-50 btn-hover-effect">取消</button>
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 mr-3 hover:bg-gray-50 btn-hover-effect touch-button">取消</button>
                             <button type="button" id="submit-add-device"
-                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 btn-hover-effect">保存</button>
+                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 btn-hover-effect touch-button">保存</button>
                         </div>
                     </form>
                 </div>
@@ -549,7 +616,7 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-dark">异常备注</h3>
-                    <button id="close-remark-modal" class="text-gray-400 hover:text-gray-600 fixed-size-btn">
+                    <button id="close-remark-modal" class="text-gray-400 hover:text-gray-600 fixed-size-btn touch-button">
                         <i class="fa-solid fa-times text-xl"></i>
                     </button>
                 </div>
@@ -565,12 +632,13 @@
                         <textarea id="remark-content" rows="4"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                             placeholder="请描述异常情况" required></textarea>
+                        <div id="remark-content-error" class="error-message hidden"></div>
                     </div>
                     <div class="flex justify-end">
                         <button type="button" id="cancel-remark"
-                            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 mr-3 hover:bg-gray-50 btn-hover-effect">取消</button>
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 mr-3 hover:bg-gray-50 btn-hover-effect touch-button">取消</button>
                         <button type="button" id="submit-remark"
-                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 btn-hover-effect">保存</button>
+                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 btn-hover-effect touch-button">保存</button>
                     </div>
                 </form>
             </div>
@@ -584,7 +652,7 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-dark">编辑巡检设备</h3>
-                    <button id="close-edit-modal" class="text-gray-400 hover:text-gray-600 fixed-size-btn">
+                    <button id="close-edit-modal" class="text-gray-400 hover:text-gray-600 fixed-size-btn touch-button">
                         <i class="fa-solid fa-times text-xl"></i>
                     </button>
                 </div>
@@ -597,6 +665,7 @@
                             <input type="text" id="edit-device-name"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 placeholder="请输入计量器具名称" required>
+                            <div id="edit-device-name-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-4">
                             <label for="edit-device-category" class="block text-sm font-medium text-gray-700 mb-1">类别 <span
@@ -609,6 +678,7 @@
                                 <option value="B类">B类</option>
                                 <option value="C类">C类</option>
                             </select>
+                            <div id="edit-device-category-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-4">
                             <label for="edit-device-location" class="block text-sm font-medium text-gray-700 mb-1">安装地点 <span
@@ -616,6 +686,7 @@
                             <input type="text" id="edit-device-location"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 placeholder="请输入安装地点" required>
+                            <div id="edit-device-location-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-4">
                             <label for="edit-device-model" class="block text-sm font-medium text-gray-700 mb-1">规格型号</label>
@@ -638,9 +709,10 @@
                         <div class="mb-4">
                             <label for="edit-inspection-cycle" class="block text-sm font-medium text-gray-700 mb-1">检定周期（月） <span
                                     class="text-red-500">*</span></label>
-                            <input type="number" id="edit-inspection-cycle"
+                            <input type="number" id="edit-inspection-cycle" min="1" max="60"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 placeholder="请输入检定周期（月）" required>
+                            <div id="edit-inspection-cycle-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-4">
                             <label for="edit-device-range" class="block text-sm font-medium text-gray-700 mb-1">测量范围</label>
@@ -654,6 +726,7 @@
                             <input type="date" id="edit-last-inspection-date"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                 required>
+                            <div id="edit-last-inspection-date-error" class="error-message hidden"></div>
                         </div>
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">巡检项目 <span
@@ -664,27 +737,28 @@
                             <div class="mt-2 mb-3">
                                 <p class="text-xs text-gray-500 mb-2">点击添加预设项目：</p>
                                 <div class="flex flex-wrap gap-2">
-                                    <button type="button" class="preset-btn" data-condition="外观">外观</button>
-                                    <button type="button" class="preset-btn" data-condition="检定标签">检定标签</button>
-                                    <button type="button" class="preset-btn" data-condition="显示情况">显示情况</button>
-                                    <button type="button" class="preset-btn" data-condition="接地">接地</button>
-                                    <button type="button" class="preset-btn" data-condition="上限标识">上限标识</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="外观">外观</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="检定标签">检定标签</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="显示情况">显示情况</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="接地">接地</button>
+                                    <button type="button" class="preset-btn touch-button" data-condition="上限标识">上限标识</button>
                                 </div>
                             </div>
                             
                             <button type="button" id="edit-add-condition-btn"
-                                class="mt-2 text-primary hover:text-primary/80 text-sm flex items-center">
+                                class="mt-2 text-primary hover:text-primary/80 text-sm flex items-center touch-button">
                                 <i class="fa-solid fa-plus-circle mr-1"></i> 添加自定义项目
                             </button>
                             <p class="text-xs text-gray-500 mt-2">可添加1-5个巡检项目</p>
+                            <div id="edit-conditions-error" class="error-message hidden"></div>
                         </div>
                         <div class="flex justify-end">
                             <button type="button" id="delete-device-btn"
-                                class="px-4 py-2 border border-red-500 text-red-500 rounded-lg mr-3 hover:bg-red-50 btn-hover-effect">删除设备</button>
+                                class="px-4 py-2 border border-red-500 text-red-500 rounded-lg mr-3 hover:bg-red-50 btn-hover-effect touch-button">删除设备</button>
                             <button type="button" id="cancel-edit-device"
-                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 mr-3 hover:bg-gray-50 btn-hover-effect">取消</button>
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 mr-3 hover:bg-gray-50 btn-hover-effect touch-button">取消</button>
                             <button type="button" id="submit-edit-device"
-                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 btn-hover-effect">保存</button>
+                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 btn-hover-effect touch-button">保存</button>
                         </div>
                     </form>
                 </div>
@@ -703,6 +777,8 @@
         let expandedDates = {}; // 存储展开状态的日期
         let expandedCardIndex = -1; // 当前展开的卡片索引，-1表示没有展开
         let searchTerm = ''; // 搜索关键词
+        let searchTimeout = null; // 搜索防抖定时器
+        let renderTimeout = null; // 渲染防抖定时器
 
         // DOM元素
         let devicesContainer, emptyState, addDeviceBtn, emptyAddBtn, addDeviceModal, modalContent;
@@ -724,9 +800,853 @@
         let topRightButtons; // 新增：顶部右侧按钮容器
         let searchInput; // 新增：搜索输入框
         let confirmAllBtn; // 新增：确认所有按钮
+        let loadingIndicator; // 新增：加载指示器
 
-        // 初始化应用
-        document.addEventListener('DOMContentLoaded', () => {
+        // ========== 日期工具 ==========
+        const DateUtils = {
+            // 安全的日期计算
+            addMonthsToDate(dateStr, months) {
+                const date = new Date(dateStr);
+                const originalDate = date.getDate();
+                
+                date.setMonth(date.getMonth() + months);
+                
+                // 处理月份溢出（如1月31日+1个月）
+                if (date.getDate() !== originalDate) {
+                    // 如果日期变了，说明是无效日期，设置为上月最后一天
+                    date.setDate(0);
+                }
+                
+                return this.formatDate(date);
+            },
+
+            // 安全的日期格式化
+            formatDate(date) {
+                if (!(date instanceof Date) || isNaN(date)) {
+                    console.warn('无效的日期对象:', date);
+                    return '0000-00-00';
+                }
+                
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            },
+
+            // 验证日期字符串
+            isValidDate(dateStr) {
+                if (!dateStr) return false;
+                const date = new Date(dateStr);
+                return date instanceof Date && !isNaN(date) && dateStr.match(/^\d{4}-\d{2}-\d{2}$/);
+            },
+
+            // 获取下一个检定日期
+            getNextInspectionDate(lastInspectionDate, inspectionCycle) {
+                if (!this.isValidDate(lastInspectionDate)) {
+                    console.warn('无效的上次检定日期:', lastInspectionDate);
+                    return '日期无效';
+                }
+                
+                try {
+                    return this.addMonthsToDate(lastInspectionDate, inspectionCycle);
+                } catch (error) {
+                    console.error('计算下次检定日期失败:', error);
+                    return '计算失败';
+                }
+            },
+
+            // 检查是否在指定天数内
+            isWithinDays(dateStr, days) {
+                if (!this.isValidDate(dateStr)) return false;
+                
+                const targetDate = new Date(dateStr);
+                const now = new Date();
+                const diffTime = targetDate - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays <= days && diffDays >= 0;
+            }
+        };
+
+        // ========== 状态管理器 ==========
+        const StatusManager = {
+            // 统一获取设备状态
+            getDeviceStatus(device) {
+                const today = getCurrentDate();
+                let normalCount = 0;
+                let abnormalCount = 0;
+                let lastInspectionTime = null;
+
+                device.conditions.forEach(condition => {
+                    const isToday = condition.inspectionTime && condition.inspectionTime.startsWith(today);
+                    
+                    if (isToday) {
+                        if (condition.status === 'normal') normalCount++;
+                        if (condition.status === 'abnormal') abnormalCount++;
+                    }
+
+                    // 更新最后巡检时间
+                    if (condition.inspectionTime) {
+                        const conditionTime = new Date(condition.inspectionTime);
+                        if (!lastInspectionTime || conditionTime > lastInspectionTime) {
+                            lastInspectionTime = conditionTime;
+                        }
+                    }
+                });
+
+                const totalCount = device.conditions.length;
+                const pendingCount = totalCount - normalCount - abnormalCount;
+                const progress = totalCount > 0 ? Math.round((normalCount + abnormalCount) / totalCount * 100) : 0;
+
+                return {
+                    normal: normalCount,
+                    abnormal: abnormalCount,
+                    pending: pendingCount,
+                    total: totalCount,
+                    progress: progress,
+                    lastInspectionTime: lastInspectionTime,
+                    isFullyCompleted: (normalCount + abnormalCount) === totalCount
+                };
+            },
+
+            // 统一获取条件显示状态
+            getConditionDisplay(condition) {
+                const today = getCurrentDate();
+                const isToday = condition.inspectionTime && condition.inspectionTime.startsWith(today);
+                const displayStatus = isToday ? condition.status : 'pending';
+                const timeDisplay = isToday ? (condition.inspectionTime.split(' ')[1]?.substr(0, 5) || '') : '';
+
+                const statusConfig = {
+                    normal: {
+                        statusClass: 'status-normal',
+                        className: 'bg-green-50',
+                        borderColor: 'border-green-100',
+                        textColor: 'text-green-800'
+                    },
+                    abnormal: {
+                        statusClass: 'status-abnormal',
+                        className: 'bg-red-50',
+                        borderColor: 'border-red-100',
+                        textColor: 'text-red-800'
+                    },
+                    pending: {
+                        statusClass: 'status-pending',
+                        className: 'bg-gray-50',
+                        borderColor: 'border-gray-100',
+                        textColor: 'text-gray-800'
+                    }
+                };
+
+                const config = statusConfig[displayStatus];
+
+                return {
+                    status: displayStatus,
+                    ...config,
+                    timeDisplay: timeDisplay,
+                    isToday: isToday
+                };
+            },
+
+            // 统一获取最后巡检信息
+            getLastInspectionDisplay(device) {
+                const today = getCurrentDate();
+                const status = this.getDeviceStatus(device);
+                
+                if (!status.lastInspectionTime) {
+                    return {
+                        date: '暂无',
+                        time: '巡检',
+                        colorClass: 'text-red-600'
+                    };
+                }
+
+                const lastTime = status.lastInspectionTime;
+                const isToday = lastTime.toDateString() === new Date().toDateString();
+                const month = String(lastTime.getMonth() + 1).padStart(2, '0');
+                const day = String(lastTime.getDate()).padStart(2, '0');
+                const hours = String(lastTime.getHours()).padStart(2, '0');
+                const minutes = String(lastTime.getMinutes()).padStart(2, '0');
+
+                let colorClass = 'text-blue-600';
+                if (isToday) colorClass = 'text-green-600';
+                else if (lastTime.toDateString() === new Date(Date.now() - 86400000).toDateString()) {
+                    colorClass = 'text-orange-600';
+                }
+
+                return {
+                    date: isToday ? '今日' : `${month}.${day}`,
+                    time: `${hours}:${minutes}`,
+                    colorClass: colorClass
+                };
+            }
+        };
+
+        // ========== 数据管理器 ==========
+        const DataManager = {
+            // 改进的加载函数
+            loadDevices() {
+                try {
+                    const savedDevices = localStorage.getItem('inspection_devices');
+                    if (savedDevices) {
+                        const parsedDevices = JSON.parse(savedDevices);
+                        // 数据迁移和兼容性处理
+                        devices = this.migrateDeviceData(parsedDevices);
+                        console.log(`从本地存储加载了 ${devices.length} 个设备`);
+                    } else {
+                        console.log('本地存储中没有设备数据');
+                        devices = [];
+                        // 不自动添加示例数据，让用户选择
+                    }
+                } catch (error) {
+                    console.error('加载设备数据失败:', error);
+                    // 尝试恢复数据
+                    devices = this.tryRecoverData();
+                    showError('加载设备数据失败，已尝试恢复最近备份');
+                }
+            },
+
+            // 数据迁移：确保新版本兼容旧数据
+            migrateDeviceData(parsedDevices) {
+                return parsedDevices.map(device => {
+                    // 确保所有必要字段都存在
+                    return {
+                        id: device.id || this.generateDeviceId(device),
+                        name: device.name || '未命名设备',
+                        category: device.category || '未分类',
+                        location: device.location || '未知位置',
+                        model: device.model || '',
+                        manufacturer: device.manufacturer || '',
+                        serialNumber: device.serialNumber || '',
+                        range: device.range || '',
+                        lastInspectionDate: device.lastInspectionDate || new Date().toISOString().split('T')[0],
+                        inspectionCycle: device.inspectionCycle || 12,
+                        conditions: (device.conditions || []).map(condition => ({
+                            id: condition.id || this.generateConditionId(condition),
+                            name: condition.name || '未命名项目',
+                            status: condition.status || 'pending',
+                            remark: condition.remark || '',
+                            inspectionTime: condition.inspectionTime || '',
+                            history: condition.history || []
+                        })),
+                        createdAt: device.createdAt || new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                });
+            },
+
+            // 生成设备ID
+            generateDeviceId(device) {
+                return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            },
+
+            // 生成条件ID
+            generateConditionId(condition) {
+                return `condition_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            },
+
+            // 数据恢复尝试
+            tryRecoverData() {
+                try {
+                    // 尝试从备份恢复
+                    const backup = localStorage.getItem('inspection_devices_backup');
+                    if (backup) {
+                        return JSON.parse(backup);
+                    }
+                } catch (e) {
+                    console.error('恢复备份失败:', e);
+                }
+                return [];
+            },
+
+            // 创建数据备份
+            createBackup() {
+                try {
+                    localStorage.setItem('inspection_devices_backup', JSON.stringify(devices));
+                    console.log('数据备份已创建');
+                } catch (error) {
+                    console.error('创建备份失败:', error);
+                }
+            },
+
+            // 统一更新条件状态
+            updateCondition(deviceIndex, conditionIndex, status, remark = '') {
+                const condition = devices[deviceIndex].conditions[conditionIndex];
+                const oldStatus = condition.status;
+                
+                condition.status = status;
+                condition.remark = remark;
+                
+                // 只有在状态变化时更新时间戳
+                if (status !== 'pending' && oldStatus !== status) {
+                    condition.inspectionTime = getCurrentDateTime();
+                    
+                    // 保存到历史记录
+                    this.saveToHistory(condition);
+                } else if (status === 'pending') {
+                    condition.inspectionTime = '';
+                }
+
+                console.log(`更新条件状态: 设备=${deviceIndex}, 条件=${conditionIndex}, 状态=${status}`);
+                
+                // 自动保存
+                this.saveDevices();
+                return true;
+            },
+
+            // 保存到历史记录
+            saveToHistory(condition) {
+                const today = getCurrentDate();
+                if (!condition.history) condition.history = [];
+                
+                // 检查是否已有今天的历史记录
+                const existingIndex = condition.history.findIndex(h => h.date === today);
+                const historyRecord = {
+                    date: today,
+                    status: condition.status,
+                    remark: condition.remark,
+                    inspectionTime: condition.inspectionTime
+                };
+
+                if (existingIndex !== -1) {
+                    condition.history[existingIndex] = historyRecord;
+                } else {
+                    condition.history.push(historyRecord);
+                }
+            },
+
+            // 统一保存设备数据
+            saveDevices() {
+                try {
+                    localStorage.setItem('inspection_devices', JSON.stringify(devices));
+                    console.log(`已保存 ${devices.length} 个设备到本地存储`);
+                } catch (error) {
+                    console.error('保存设备数据失败:', error);
+                    if (error.name === 'QuotaExceededError') {
+                        this.cleanupOldData();
+                    }
+                    throw error;
+                }
+            },
+
+            // 清理旧数据
+            cleanupOldData() {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                
+                devices.forEach(device => {
+                    device.conditions.forEach(condition => {
+                        if (condition.history) {
+                            condition.history = condition.history.filter(record => 
+                                new Date(record.date) >= thirtyDaysAgo
+                            );
+                        }
+                    });
+                });
+                
+                this.saveDevices();
+                console.log('已清理30天前的历史数据');
+            }
+        };
+
+        // ========== 事件管理器 ==========
+        const EventManager = {
+            init() {
+                this.setupDeviceEvents();
+                this.setupModalEvents();
+                this.setupNavigationEvents();
+                this.setupGlobalEvents();
+            },
+
+            // 设置全局事件
+            setupGlobalEvents() {
+                // 页面可见性变化时保存数据
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'hidden') {
+                        DataManager.createBackup();
+                    }
+                });
+
+                // 页面卸载前保存数据
+                window.addEventListener('beforeunload', () => {
+                    DataManager.createBackup();
+                });
+
+                // 错误监控
+                window.addEventListener('error', (e) => {
+                    console.error('全局错误:', e.error);
+                    this.handleGlobalError(e.error);
+                });
+
+                // Promise rejection 监控
+                window.addEventListener('unhandledrejection', (e) => {
+                    console.error('未处理的Promise拒绝:', e.reason);
+                    this.handleGlobalError(e.reason);
+                });
+            },
+
+            // 全局错误处理
+            handleGlobalError(error) {
+                // 可以在这里上报错误或显示友好提示
+                console.error('应用程序错误:', error);
+                
+                // 自动保存数据备份
+                DataManager.createBackup();
+                
+                // 显示友好错误提示（可选）
+                if (!this.errorShown) {
+                    this.errorShown = true;
+                    setTimeout(() => {
+                        showError('应用程序遇到问题，数据已自动备份');
+                        this.errorShown = false;
+                    }, 1000);
+                }
+            },
+
+            // 设备相关事件委托
+            setupDeviceEvents() {
+                // 设备容器事件委托
+                devicesContainer.addEventListener('click', (e) => {
+                    this.handleDeviceContainerClick(e);
+                });
+
+                // 设备容器长按事件
+                devicesContainer.addEventListener('touchstart', (e) => {
+                    this.handleLongPressStart(e);
+                }, { passive: false });
+
+                devicesContainer.addEventListener('mousedown', (e) => {
+                    this.handleLongPressStart(e);
+                });
+
+                // 结束长按
+                ['touchend', 'mouseup', 'mouseleave'].forEach(eventType => {
+                    devicesContainer.addEventListener(eventType, (e) => {
+                        this.handleLongPressEnd(e);
+                    });
+                });
+            },
+
+            // 处理设备容器点击
+            handleDeviceContainerClick(e) {
+                const target = e.target;
+                
+                // 条件项点击
+                const conditionItem = target.closest('.condition-item');
+                if (conditionItem) {
+                    e.stopPropagation();
+                    const deviceIndex = this.getDeviceIndex(conditionItem);
+                    const conditionIndex = parseInt(conditionItem.dataset.index);
+                    if (!isNaN(deviceIndex) && !isNaN(conditionIndex)) {
+                        DataManager.updateCondition(deviceIndex, conditionIndex, 'normal');
+                        this.refreshUI();
+                    }
+                    return;
+                }
+
+                // 刷新按钮
+                const refreshBtn = target.closest('.refresh-device');
+                if (refreshBtn) {
+                    e.stopPropagation();
+                    const deviceIndex = this.getDeviceIndex(refreshBtn);
+                    if (!isNaN(deviceIndex)) {
+                        this.refreshSingleDevice(deviceIndex);
+                    }
+                    return;
+                }
+
+                // 编辑按钮
+                const editBtn = target.closest('.edit-device');
+                if (editBtn) {
+                    e.stopPropagation();
+                    const deviceIndex = this.getDeviceIndex(editBtn);
+                    if (!isNaN(deviceIndex)) {
+                        openEditDeviceModal(deviceIndex);
+                    }
+                    return;
+                }
+
+                // 卡片点击（展开/折叠）
+                const deviceCard = target.closest('.device-card-shadow');
+                if (deviceCard && !conditionItem && !refreshBtn && !editBtn) {
+                    const deviceIndex = this.getDeviceIndex(deviceCard);
+                    this.toggleDeviceCard(deviceCard, deviceIndex);
+                }
+            },
+
+            // 改进的长按处理
+            longPressTimers: new Map(),
+            longPressThreshold: 500,
+
+            handleLongPressStart(e) {
+                const conditionItem = e.target.closest('.condition-item');
+                if (!conditionItem) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                // 添加触觉反馈（如果支持）
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+
+                const deviceIndex = this.getDeviceIndex(conditionItem);
+                const conditionIndex = parseInt(conditionItem.dataset.index);
+                
+                if (isNaN(deviceIndex) || isNaN(conditionIndex)) return;
+
+                conditionItem.classList.add('long-press-active');
+
+                const timerId = setTimeout(() => {
+                    this.executeLongPress(deviceIndex, conditionIndex, conditionItem);
+                }, this.longPressThreshold);
+
+                this.longPressTimers.set(conditionItem, timerId);
+            },
+
+            executeLongPress(deviceIndex, conditionIndex, conditionItem) {
+                DataManager.updateCondition(deviceIndex, conditionIndex, 'abnormal');
+                currentDeviceId = deviceIndex;
+                currentConditionIndex = conditionIndex;
+                
+                this.refreshUI();
+                openRemarkModal(devices[deviceIndex].conditions[conditionIndex].name);
+                conditionItem.classList.remove('long-press-active');
+                
+                // 清理计时器
+                this.longPressTimers.delete(conditionItem);
+            },
+
+            handleLongPressEnd(e) {
+                const conditionItem = e.target.closest('.condition-item');
+                if (!conditionItem) return;
+
+                this.cancelLongPress(conditionItem);
+            },
+
+            cancelLongPress(conditionItem) {
+                const timerId = this.longPressTimers.get(conditionItem);
+                if (timerId) {
+                    clearTimeout(timerId);
+                    this.longPressTimers.delete(conditionItem);
+                }
+                conditionItem.classList.remove('long-press-active');
+            },
+
+            // 清理所有计时器
+            cleanupAllTimers() {
+                this.longPressTimers.forEach((timerId, conditionItem) => {
+                    clearTimeout(timerId);
+                    conditionItem.classList.remove('long-press-active');
+                });
+                this.longPressTimers.clear();
+            },
+
+            // 辅助方法
+            getDeviceIndex(element) {
+                const card = element.closest('.device-card-shadow');
+                if (!card) return -1;
+                
+                // 使用 data-device-index 属性
+                const index = parseInt(card.dataset.deviceIndex);
+                return isNaN(index) ? -1 : index;
+            },
+
+            toggleDeviceCard(card, index) {
+                if (index !== expandedCardIndex) {
+                    // 收起所有卡片
+                    const allCards = devicesContainer.querySelectorAll('.device-card-shadow');
+                    allCards.forEach((c, i) => {
+                        if (i !== index) this.setCardExpanded(c, false);
+                    });
+                    
+                    // 展开当前卡片
+                    this.setCardExpanded(card, true);
+                    expandedCardIndex = index;
+                }
+            },
+
+            setCardExpanded(card, isExpanded) {
+                const progressOverlay = card.querySelector('.mini-progress-overlay');
+                const miniInspectionInfo = card.querySelector('.mini-inspection-info');
+                const expandedContent = card.querySelector('.expanded-content');
+                
+                if (isExpanded) {
+                    progressOverlay.classList.add('hidden');
+                    miniInspectionInfo.classList.add('hidden');
+                    expandedContent.classList.remove('hidden');
+                    card.classList.add('expanded-card');
+                } else {
+                    progressOverlay.classList.remove('hidden');
+                    miniInspectionInfo.classList.remove('hidden');
+                    expandedContent.classList.add('hidden');
+                    card.classList.remove('expanded-card');
+                }
+            },
+
+            refreshSingleDevice(index) {
+                const today = getCurrentDate();
+                devices[index].conditions.forEach((condition, condIndex) => {
+                    if (condition.inspectionTime && condition.inspectionTime.startsWith(today)) {
+                        DataManager.updateCondition(index, condIndex, 'pending', '');
+                    }
+                });
+                this.refreshUI();
+                showSuccess('设备巡检状态已刷新');
+            },
+
+            refreshUI() {
+                renderDevices();
+                renderInspectionRecords();
+            },
+
+            setupModalEvents() {
+                // 模态框预设按钮事件 - 使用一次性绑定
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('preset-btn')) {
+                        const condition = e.target.getAttribute('data-condition');
+                        const isEditModal = e.target.closest('#edit-device-modal');
+                        
+                        if (isEditModal) {
+                            editAddPresetCondition(condition);
+                        } else {
+                            addPresetCondition(condition);
+                        }
+                    }
+                });
+            },
+
+            setupNavigationEvents() {
+                // 导航按钮事件
+                navDeviceListBtn.addEventListener('click', () => switchPage('device-list-page'));
+                navRecordsBtn.addEventListener('click', () => switchPage('inspection-records-page'));
+                navProfileBtn.addEventListener('click', () => switchPage('profile-page'));
+                
+                // 搜索事件 - 添加防抖
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        searchTerm = e.target.value.toLowerCase();
+                        renderDevices();
+                    }, 300);
+                });
+            }
+        };
+
+        // ========== 性能优化管理器 ==========
+        const PerformanceManager = {
+            // 防抖函数
+            debounce(func, wait, immediate = false) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        timeout = null;
+                        if (!immediate) func(...args);
+                    };
+                    const callNow = immediate && !timeout;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                    if (callNow) func(...args);
+                };
+            },
+
+            // 节流函数
+            throttle(func, limit) {
+                let inThrottle;
+                return function(...args) {
+                    if (!inThrottle) {
+                        func.apply(this, args);
+                        inThrottle = true;
+                        setTimeout(() => inThrottle = false, limit);
+                    }
+                };
+            },
+
+            // 内存监控
+            monitorMemory() {
+                if (performance.memory) {
+                    const memory = performance.memory;
+                    const used = Math.round(memory.usedJSHeapSize / 1048576);
+                    const limit = Math.round(memory.jsHeapSizeLimit / 1048576);
+                    
+                    if (used > limit * 0.8) {
+                        console.warn('内存使用过高，建议清理数据');
+                        this.cleanupMemory();
+                    }
+                }
+            },
+
+            // 内存清理
+            cleanupMemory() {
+                // 清理过期的计时器
+                EventManager.cleanupAllTimers();
+                
+                // 强制垃圾回收（如果支持）
+                if (global.gc) {
+                    global.gc();
+                }
+            }
+        };
+
+        // ========== 用户体验管理器 ==========
+        const UXManager = {
+            // 显示操作反馈
+            showOperationFeedback(message, type = 'success') {
+                // 移除现有的反馈
+                const existingFeedback = document.querySelector('.operation-feedback');
+                if (existingFeedback) {
+                    existingFeedback.remove();
+                }
+                
+                const feedback = document.createElement('div');
+                feedback.className = `operation-feedback ${
+                    type === 'success' ? 'bg-green-500 text-white' : 
+                    type === 'error' ? 'bg-red-500 text-white' : 
+                    'bg-blue-500 text-white'
+                }`;
+                feedback.textContent = message;
+                
+                document.body.appendChild(feedback);
+                
+                // 自动隐藏
+                setTimeout(() => {
+                    feedback.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (feedback.parentNode) {
+                            feedback.parentNode.removeChild(feedback);
+                        }
+                    }, 300);
+                }, 3000);
+            },
+
+            // 确认对话框
+            async showConfirm(message, title = '确认操作') {
+                return new Promise((resolve) => {
+                    // 创建模态框
+                    const modal = document.createElement('div');
+                    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+                    modal.innerHTML = `
+                        <div class="bg-white rounded-xl shadow-xl w-[calc(100%-2rem)] max-w-md mx-4 p-6">
+                            <h3 class="text-xl font-bold text-dark mb-4">${title}</h3>
+                            <p class="text-gray-700 mb-6">${message}</p>
+                            <div class="flex justify-end space-x-3">
+                                <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors cancel-btn">取消</button>
+                                <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors confirm-btn">确认</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(modal);
+                    
+                    // 事件处理
+                    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+                        document.body.removeChild(modal);
+                        resolve(false);
+                    });
+                    
+                    modal.querySelector('.confirm-btn').addEventListener('click', () => {
+                        document.body.removeChild(modal);
+                        resolve(true);
+                    });
+                    
+                    // ESC键关闭
+                    const handleKeydown = (e) => {
+                        if (e.key === 'Escape') {
+                            document.body.removeChild(modal);
+                            document.removeEventListener('keydown', handleKeydown);
+                            resolve(false);
+                        }
+                    };
+                    document.addEventListener('keydown', handleKeydown);
+                });
+            },
+
+            // 加载状态管理
+            setLoadingState(isLoading, message = '加载中...') {
+                if (isLoading) {
+                    showLoading(message);
+                } else {
+                    hideLoading();
+                }
+            },
+
+            // 离线状态检测
+            initOfflineDetection() {
+                window.addEventListener('online', () => {
+                    this.showOperationFeedback('网络连接已恢复', 'success');
+                });
+
+                window.addEventListener('offline', () => {
+                    this.showOperationFeedback('网络连接已断开，请检查网络', 'error');
+                });
+            }
+        };
+
+        // ========== 错误边界管理器 ==========
+        const ErrorBoundary = {
+            // 包装可能出错的操作
+            safeExecute(operation, fallback = null, errorMessage = '操作执行失败') {
+                try {
+                    return operation();
+                } catch (error) {
+                    console.error(`${errorMessage}:`, error);
+                    UXManager.showOperationFeedback(errorMessage, 'error');
+                    return fallback;
+                }
+            },
+
+            // 重试机制
+            async withRetry(operation, maxRetries = 3, delay = 1000) {
+                let lastError;
+                
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    try {
+                        return await operation();
+                    } catch (error) {
+                        lastError = error;
+                        console.warn(`操作失败，第${attempt}次重试:`, error);
+                        
+                        if (attempt < maxRetries) {
+                            await new Promise(resolve => setTimeout(resolve, delay * attempt));
+                        }
+                    }
+                }
+                
+                throw lastError;
+            },
+
+            // 数据验证
+            validateDeviceData(device) {
+                const errors = [];
+                
+                if (!device.name || device.name.trim() === '') {
+                    errors.push('设备名称不能为空');
+                }
+                
+                if (!device.category) {
+                    errors.push('设备类别不能为空');
+                }
+                
+                if (!device.location) {
+                    errors.push('安装地点不能为空');
+                }
+                
+                if (!device.lastInspectionDate || !DateUtils.isValidDate(device.lastInspectionDate)) {
+                    errors.push('上次检定日期无效');
+                }
+                
+                if (!device.inspectionCycle || device.inspectionCycle < 1 || device.inspectionCycle > 60) {
+                    errors.push('检定周期必须在1-60个月之间');
+                }
+                
+                if (!device.conditions || device.conditions.length === 0) {
+                    errors.push('至少需要一个巡检项目');
+                }
+                
+                return errors;
+            }
+        };
+
+        // ========== 初始化函数 ==========
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM加载完成，初始化应用');
 
             // 获取DOM元素
@@ -773,6 +1693,7 @@
             inspectionRecordsContainer = document.getElementById('inspection-records');
             toggleAllRecordsBtn = document.getElementById('toggle-all-records');
             fileImportInput = document.getElementById('file-import');
+            loadingIndicator = document.getElementById('loading-indicator');
             
             // 新增的导航元素
             navDeviceListBtn = document.getElementById('nav-device-list');
@@ -785,7 +1706,7 @@
             // 个人中心按钮
             profileExportBtn = document.getElementById('profile-export-btn');
             profileImportBtn = document.getElementById('profile-import-btn');
-            profileDeleteAllBtn = document.getElementById('profile-delete-all-btn'); // 新增
+            profileDeleteAllBtn = document.getElementById('profile-delete-all-btn');
             
             // 顶部右侧按钮容器
             topRightButtons = document.getElementById('top-right-buttons');
@@ -796,8 +1717,12 @@
             // 确认所有按钮
             confirmAllBtn = document.getElementById('confirm-all-btn');
 
+            // 初始化管理器
+            EventManager.init();
+            UXManager.initOfflineDetection();
+
             // 从本地存储加载数据
-            loadDevices();
+            DataManager.loadDevices();
             
             // 检查是否需要每日重置
             checkAndResetDaily();
@@ -817,17 +1742,21 @@
             cancelRemark.addEventListener('click', closeRemarkModalFunc);
             submitRemarkBtn.addEventListener('click', handleRemarkSubmit);
 
-            refreshAllBtn.addEventListener('click', () => {
-                if (confirm('确定要刷新所有设备的巡检状态吗？')) {
-                    refreshAllDevices();
-                }
+            refreshAllBtn.addEventListener('click', function() {
+                UXManager.showConfirm('确定要刷新所有设备的巡检状态吗？', '刷新所有设备').then(confirmed => {
+                    if (confirmed) {
+                        refreshAllDevices();
+                    }
+                });
             });
             
             // 确认所有按钮事件
-            confirmAllBtn.addEventListener('click', () => {
-                if (confirm('确定要将当天所有设备的所有巡检项目状态全部更改为已巡检吗？')) {
-                    confirmAllDevices();
-                }
+            confirmAllBtn.addEventListener('click', function() {
+                UXManager.showConfirm('确定要将当天所有设备的所有巡检项目状态全部更改为已巡检吗？', '确认所有设备').then(confirmed => {
+                    if (confirmed) {
+                        confirmAllDevices();
+                    }
+                });
             });
 
             closeEditModal.addEventListener('click', closeEditDeviceModal);
@@ -836,17 +1765,9 @@
             submitEditDeviceBtn.addEventListener('click', handleEditDevice);
             editAddConditionBtn.addEventListener('click', editAddConditionField);
 
-            // 预设项目按钮事件
-            document.querySelectorAll('.preset-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const condition = btn.getAttribute('data-condition');
-                    addPresetCondition(condition);
-                });
-            });
-
             // 导入导出事件
             profileExportBtn.addEventListener('click', exportDevices);
-            profileImportBtn.addEventListener('click', () => {
+            profileImportBtn.addEventListener('click', function() {
                 fileImportInput.click();
             });
             
@@ -857,20 +1778,14 @@
             
             // 记录折叠事件
             toggleAllRecordsBtn.addEventListener('click', toggleAllRecords);
-            
-            // 导航按钮事件
-            navDeviceListBtn.addEventListener('click', () => switchPage('device-list-page'));
-            navRecordsBtn.addEventListener('click', () => switchPage('inspection-records-page'));
-            navProfileBtn.addEventListener('click', () => switchPage('profile-page'));
-            
-            // 搜索事件
-            searchInput.addEventListener('input', (e) => {
-                searchTerm = e.target.value.toLowerCase();
-                renderDevices();
-            });
 
             console.log('应用初始化完成，所有事件监听器已绑定');
+            
+            // 申请文件权限
+            requestFilePermission();
         });
+
+        // ========== 核心功能函数 ==========
 
         // 切换页面
         function switchPage(pageId) {
@@ -904,27 +1819,27 @@
 
         // 检查并执行每日重置
         function checkAndResetDaily() {
-            const today = getCurrentDate();
-            const lastResetDate = localStorage.getItem('lastResetDate');
+            var today = getCurrentDate();
+            var lastResetDate = localStorage.getItem('lastResetDate');
             
             // 如果是新的一天，重置所有设备状态
             if (lastResetDate !== today) {
                 console.log('新的一天，重置所有设备状态');
-                devices.forEach(device => {
-                    device.conditions.forEach(condition => {
-                        // 修复：确保正确保存历史记录
+                devices.forEach(function(device) {
+                    device.conditions.forEach(function(condition) {
+                        // 确保正确保存历史记录
                         if (!condition.history) {
                             condition.history = [];
                         }
                         
                         // 检查昨天是否有巡检记录需要保存
-                        const yesterday = new Date();
+                        var yesterday = new Date();
                         yesterday.setDate(yesterday.getDate() - 1);
-                        const yesterdayStr = yesterday.toISOString().split('T')[0];
+                        var yesterdayStr = yesterday.toISOString().split('T')[0];
                         
                         // 如果昨天有巡检记录且状态不是待巡检，保存到历史记录
                         if (condition.inspectionTime && condition.inspectionTime.startsWith(yesterdayStr) && condition.status !== 'pending') {
-                            const historyRecord = {
+                            var historyRecord = {
                                 date: yesterdayStr,
                                 status: condition.status,
                                 remark: condition.remark,
@@ -932,7 +1847,7 @@
                             };
                             
                             // 检查是否已经存在昨天的历史记录
-                            const existingIndex = condition.history.findIndex(h => h.date === yesterdayStr);
+                            var existingIndex = condition.history.findIndex(function(h) { return h.date === yesterdayStr; });
                             if (existingIndex !== -1) {
                                 // 更新现有记录
                                 condition.history[existingIndex] = historyRecord;
@@ -950,102 +1865,25 @@
                 });
                 
                 // 保存重置后的状态和新的重置日期
-                saveDevices();
+                DataManager.saveDevices();
                 localStorage.setItem('lastResetDate', today);
                 
                 console.log('每日重置完成');
             }
         }
 
-        // 从本地存储加载设备数据
-        function loadDevices() {
-            try {
-                const savedDevices = localStorage.getItem('inspection_devices');
-                if (savedDevices) {
-                    const parsedDevices = JSON.parse(savedDevices);
-                    // 确保所有条件都有历史记录字段
-                    devices = parsedDevices.map(device => {
-                        return {
-                            ...device,
-                            conditions: device.conditions.map(condition => {
-                                return {
-                                    ...condition,
-                                    history: condition.history || [] // 确保有历史记录字段
-                                };
-                            })
-                        };
-                    });
-                    console.log(`从本地存储加载了 ${devices.length} 个设备`);
-                } else {
-                    console.log('本地存储中没有设备数据');
-                    // 添加示例数据
-                    devices = [
-                        {
-                            name: "注水岗官一联来水",
-                            category: "A类",
-                            location: "注水岗官一联",
-                            model: "PT100",
-                            manufacturer: "北京仪器厂",
-                            serialNumber: "DEV-001",
-                            range: "0-100℃",
-                            lastInspectionDate: "2023-12-15",
-                            inspectionCycle: 6,
-                            conditions: [
-                                { name: "外观", status: "pending", remark: "", inspectionTime: "", history: [] },
-                                { name: "检定标签", status: "pending", remark: "", inspectionTime: "", history: [] },
-                                { name: "显示情况", status: "pending", remark: "", inspectionTime: "", history: [] },
-                                { name: "接地", status: "pending", remark: "", inspectionTime: "", history: [] }
-                            ]
-                        },
-                        {
-                            name: "2#注水泵房喂水泵总出口",
-                            category: "B类",
-                            location: "2#注水泵房",
-                            model: "PT200",
-                            manufacturer: "上海仪表厂",
-                            serialNumber: "DEV-002",
-                            range: "0-200℃",
-                            lastInspectionDate: "2024-01-10",
-                            inspectionCycle: 12,
-                            conditions: [
-                                { name: "外观", status: "pending", remark: "", inspectionTime: "", history: [] },
-                                { name: "检定标签", status: "pending", remark: "", inspectionTime: "", history: [] },
-                                { name: "显示情况", status: "pending", remark: "", inspectionTime: "", history: [] },
-                                { name: "接地", status: "pending", remark: "", inspectionTime: "", history: [] }
-                            ]
-                        }
-                    ];
-                    saveDevices();
-                }
-            } catch (error) {
-                console.error('加载设备数据失败:', error);
-                devices = [];
-            }
-        }
-
-        // 保存设备数据到本地存储
-        function saveDevices() {
-            try {
-                localStorage.setItem('inspection_devices', JSON.stringify(devices));
-                console.log(`已保存 ${devices.length} 个设备到本地存储`);
-            } catch (error) {
-                console.error('保存设备数据失败:', error);
-                throw error;
-            }
-        }
-
-        // 渲染所有设备（支持搜索）
-        function renderDevices() {
-            console.log(`开始渲染设备列表，共有 ${devices.length} 个设备`);
+        // 渲染所有设备（支持搜索）- 添加防抖渲染
+        const renderDevices = PerformanceManager.debounce(function() {
+            console.log('开始渲染设备列表，共有 ' + devices.length + ' 个设备');
             
             // 过滤设备
-            let filteredDevices = devices;
+            var filteredDevices = devices;
             if (searchTerm) {
-                filteredDevices = devices.filter(device => 
-                    device.name.toLowerCase().includes(searchTerm) || 
-                    (device.serialNumber && device.serialNumber.toLowerCase().includes(searchTerm)) ||
-                    (device.location && device.location.toLowerCase().includes(searchTerm))
-                );
+                filteredDevices = devices.filter(function(device) { 
+                    return device.name.toLowerCase().includes(searchTerm) || 
+                        (device.serialNumber && device.serialNumber.toLowerCase().includes(searchTerm)) ||
+                        (device.location && device.location.toLowerCase().includes(searchTerm));
+                });
             }
             
             if (filteredDevices.length === 0) {
@@ -1063,69 +1901,50 @@
             devicesContainer.classList.remove('hidden');
             devicesContainer.innerHTML = '';
 
-            filteredDevices.forEach((device, index) => {
+            filteredDevices.forEach(function(device, index) {
                 // 获取原始设备索引（因为过滤后的索引可能不同）
-                const originalIndex = devices.findIndex(d => 
-                    d.name === device.name && d.serialNumber === device.serialNumber
-                );
+                var originalIndex = devices.findIndex(function(d) { 
+                    return d.id === device.id;
+                });
                 
-                const deviceCard = createDeviceCard(device, originalIndex);
+                var deviceCard = createDeviceCard(device, originalIndex);
                 devicesContainer.appendChild(deviceCard);
                 
                 // 默认折叠所有卡片，除了当前展开的卡片
                 if (originalIndex !== expandedCardIndex) {
-                    toggleDeviceCard(deviceCard, false);
+                    EventManager.setCardExpanded(deviceCard, false);
                 } else {
                     // 确保展开的卡片也应用样式
-                    toggleDeviceCard(deviceCard, true);
+                    EventManager.setCardExpanded(deviceCard, true);
                 }
             });
 
             console.log('设备列表渲染完成');
-        }
+        }, 50);
 
         // 创建设备卡片
         function createDeviceCard(device, index) {
+            const status = StatusManager.getDeviceStatus(device);
+            const lastInspection = StatusManager.getLastInspectionDisplay(device);
+            const nextInspectionDate = DateUtils.getNextInspectionDate(device.lastInspectionDate, device.inspectionCycle);
+            const isNearInspection = DateUtils.isWithinDays(nextInspectionDate, 10);
+
             const card = document.createElement('div');
             card.className = 'bg-white rounded-lg overflow-hidden device-card-shadow hover:shadow-md transition-all duration-300 relative';
+            card.dataset.deviceIndex = index;
 
-            let normalCount = 0;
-            let abnormalCount = 0;
-            const today = getCurrentDate();
-
-            device.conditions.forEach(condition => {
-                // 修复：只计算当天的巡检状态，且必须有巡检时间
-                const isToday = condition.inspectionTime && condition.inspectionTime.startsWith(today);
-                
-                if (condition.status === 'normal' && isToday) {
-                    normalCount++;
-                }
-                if (condition.status === 'abnormal' && isToday) {
-                    abnormalCount++;
-                }
-            });
-
-            const totalCount = device.conditions.length;
-            const progress = totalCount > 0 ? Math.round(((normalCount + abnormalCount) / totalCount) * 100) : 0;
-
-            const nextInspectionDate = getNextInspectionDate(device.lastInspectionDate, device.inspectionCycle);
-            const isNearInspection = isWithinTenDays(nextInspectionDate);
-
-            // 获取最近巡检时间 - 修复问题1：同时检查历史记录
-            const lastInspectionTime = getLastInspectionTime(device);
-
-            let inspectionInfo = `
+            const inspectionInfo = `
                 <span class="text-xs text-gray-600">上次检定: ${device.lastInspectionDate}</span><br>
                 <span class="text-xs text-gray-600">周期: ${device.inspectionCycle} 月</span><br>
                 <span class="text-xs ${isNearInspection ? 'text-red-500' : 'text-gray-600'}">下次检定: ${nextInspectionDate} ${isNearInspection ? '<i class="fa-solid fa-triangle-exclamation mr-1"></i>' : ''}</span>
             `;
 
-            let miniInspectionInfo = isNearInspection ? `<span class="text-xs text-red-500">下次检定: ${nextInspectionDate} <i class="fa-solid fa-triangle-exclamation mr-1"></i></span>` : '';
+            const miniInspectionInfo = isNearInspection ? `<span class="text-xs text-red-500">下次检定: ${nextInspectionDate} <i class="fa-solid fa-triangle-exclamation mr-1"></i></span>` : '';
 
-            // 新的卡片结构 - 完全重新设计，确保迷你卡片只显示6个元素
+            // 新的卡片结构
             card.innerHTML = `
                 <!-- 蓝色进度遮罩层 - 只在折叠时显示 -->
-                <div class="mini-progress-overlay" style="--progress: ${progress}%"></div>
+                <div class="mini-progress-overlay" style="--progress: ${status.progress}%"></div>
                 
                 <div class="mini-card-content p-1">
                     <!-- 迷你卡片内容 - 始终显示 -->
@@ -1135,22 +1954,22 @@
                             <p class="text-gray-500 text-xs device-code">${device.location}</p>
                         </div>
                         <div class="flex items-center space-x-1 ml-2 flex-shrink-0">
-                            <!-- 上次巡检时间 - 修改：根据是否为今日设置颜色 -->
-                            <div class="text-right ${lastInspectionTime.isToday ? 'text-green-600' : lastInspectionTime.hasHistory ? 'text-blue-600' : 'text-red-600'} whitespace-nowrap mr-1">
-                                <div class="text-xs leading-none">${lastInspectionTime.time}</div>
-                                <div class="text-xs leading-none">${lastInspectionTime.date}</div>
+                            <!-- 上次巡检时间 -->
+                            <div class="text-right ${lastInspection.colorClass} whitespace-nowrap mr-1">
+                                <div class="text-xs leading-none">${lastInspection.time}</div>
+                                <div class="text-xs leading-none">${lastInspection.date}</div>
                             </div>
-                            <button class="refresh-device text-dark bg-white/80 hover:bg-white rounded-full p-1 transition-colors fixed-size-btn" title="刷新设备状态">
+                            <button class="refresh-device text-dark bg-white/80 hover:bg-white rounded-full p-1 transition-colors fixed-size-btn touch-button" title="刷新设备状态">
                                 <i class="fa-solid fa-rotate text-xs"></i>
                             </button>
-                            <button class="edit-device text-dark bg-white/80 hover:bg-white rounded-full p-1 transition-colors fixed-size-btn" title="编辑设备信息">
+                            <button class="edit-device text-dark bg-white/80 hover:bg-white rounded-full p-1 transition-colors fixed-size-btn touch-button" title="编辑设备信息">
                                 <i class="fa-solid fa-pen text-xs"></i>
                             </button>
                         </div>
                     </div>
                     
                     <!-- 检定日期提醒 - 只在折叠时显示 -->
-                    <div class="mini-inspection-info hidden">
+                    <div class="mini-inspection-info ${isNearInspection ? '' : 'hidden'}">
                         ${miniInspectionInfo}
                     </div>
                     
@@ -1177,25 +1996,25 @@
                         <div class="mb-2 progress-container">
                             <div class="flex justify-between text-xs mb-0.5 progress-text">
                                 <span class="text-gray-600">巡检进度</span>
-                                <span class="font-medium">${progress}%</span>
+                                <span class="font-medium">${status.progress}%</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                <div class="bg-primary h-1.5 rounded-full" style="width: ${progress}%"></div>
+                                <div class="bg-primary h-1.5 rounded-full" style="width: ${status.progress}%"></div>
                             </div>
                         </div>
                         
                         <div class="flex justify-between space-x-1 mb-2 status-container">
                             <div class="bg-green-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                                <div class="w-1.5 h-1.5 rounded-full bg-normal mr-1"></div>
-                                <span class="text-xs text-gray-700">${normalCount}</span>
+                                <div class="status-indicator status-normal"></div>
+                                <span class="text-xs text-gray-700">${status.normal}</span>
                             </div>
                             <div class="bg-red-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                                <div class="w-1.5 h-1.5 rounded-full bg-abnormal mr-1"></div>
-                                <span class="text-xs text-gray-700">${abnormalCount}</span>
+                                <div class="status-indicator status-abnormal"></div>
+                                <span class="text-xs text-gray-700">${status.abnormal}</span>
                             </div>
                             <div class="bg-gray-50 rounded-lg px-1.5 py-0.5 flex items-center flex-shrink-0">
-                                <div class="w-1.5 h-1.5 rounded-full bg-pending mr-1"></div>
-                                <span class="text-xs text-gray-700">${totalCount - normalCount - abnormalCount}</span>
+                                <div class="status-indicator status-pending"></div>
+                                <span class="text-xs text-gray-700">${status.pending}</span>
                             </div>
                         </div>
 
@@ -1204,26 +2023,23 @@
                         </div>
                         
                         <div class="space-y-1 conditions-container">
-                            ${device.conditions.map((condition, condIndex) => {
-                                // 修复：只显示今天的巡检状态，历史记录显示为灰色
-                                const isToday = condition.inspectionTime && condition.inspectionTime.startsWith(today);
-                                const displayStatus = isToday ? condition.status : 'pending';
-                                const timeDisplay = isToday ? condition.inspectionTime.split(' ')[1].substr(0,5) : '';
+                            ${device.conditions.map(function(condition, condIndex) {
+                                const display = StatusManager.getConditionDisplay(condition);
                                 
                                 return `
-                                <div class="condition-item p-1.5 ${displayStatus === 'pending' ? 'bg-gray-50' : displayStatus === 'normal' ? 'bg-green-50' : 'bg-red-50'} border ${displayStatus === 'pending' ? 'border-gray-100' : displayStatus === 'normal' ? 'border-green-100' : 'border-red-100'}" 
+                                <div class="condition-item p-1.5 ${display.className} border ${display.borderColor}" 
                                     data-index="${condIndex}">
                                     <div class="flex justify-between items-center">
                                         <div class="flex items-center">
-                                            <div class="w-2.5 h-2.5 rounded-full ${displayStatus === 'pending' ? 'bg-pending' : displayStatus === 'normal' ? 'bg-normal' : 'bg-abnormal'} mr-1"></div>
-                                            <span class="text-xs text-gray-800 ${displayStatus === 'abnormal' ? 'font-medium' : ''}">${condition.name}</span>
+                                            <div class="status-indicator ${display.statusClass}"></div>
+                                            <span class="text-xs ${display.textColor} ${display.status === 'abnormal' ? 'font-medium' : ''}">${condition.name}</span>
                                         </div>
                                         <div class="flex items-center">
-                                            ${displayStatus === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
-                                            ${timeDisplay ? `<span class="text-xs text-gray-500">${timeDisplay}</span>` : ''}
+                                            ${display.status === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
+                                            ${display.timeDisplay ? `<span class="text-xs text-gray-500">${display.timeDisplay}</span>` : ''}
                                         </div>
                                     </div>
-                                    ${displayStatus === 'abnormal' ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
+                                    ${display.status === 'abnormal' ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
                                 </div>
                                 `;
                             }).join('')}
@@ -1232,151 +2048,7 @@
                 </div>
             `;
 
-            // 添加点击事件 - 点击卡片任意位置展开/折叠
-            card.addEventListener('click', (e) => {
-                // 防止编辑按钮和刷新按钮触发卡片展开
-                if (e.target.closest('.edit-device') || e.target.closest('.refresh-device')) {
-                    return;
-                }
-                
-                // 切换卡片状态
-                if (index !== expandedCardIndex) {
-                    // 收起所有卡片
-                    const allCards = devicesContainer.querySelectorAll('.device-card-shadow');
-                    allCards.forEach((c, i) => {
-                        if (i !== index) {
-                            toggleDeviceCard(c, false);
-                        }
-                    });
-                    
-                    // 展开当前卡片
-                    toggleDeviceCard(card, true);
-                    expandedCardIndex = index;
-                } else {
-                    // 点击已展开的卡片，不执行任何操作
-                    return;
-                }
-            });
-
-            // 添加刷新按钮事件
-            const refreshBtn = card.querySelector('.refresh-device');
-            refreshBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // 阻止事件冒泡
-                console.log(`刷新设备 ${index} 的巡检状态`);
-                refreshSingleDevice(index);
-            });
-
-            // 添加编辑按钮事件
-            const editBtn = card.querySelector('.edit-device');
-            editBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // 阻止事件冒泡
-                console.log(`点击编辑设备 ${index}`);
-                openEditDeviceModal(index);
-            });
-
-            // 添加条件点击事件
-            const conditionItems = card.querySelectorAll('.condition-item');
-            conditionItems.forEach(item => {
-                const condIndex = parseInt(item.getAttribute('data-index'));
-
-                // 单击事件 - 切换到正常状态
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation(); // 阻止事件冒泡
-                    
-                    // 如果长按事件已触发，则不执行此事件
-                    if (e.detail === 0) return;
-
-                    console.log(`点击条件 ${condIndex}，状态从 ${devices[index].conditions[condIndex].status} 切换到 normal`);
-
-                    // 修复：无论当前状态是什么，都设置为正常并记录时间
-                    devices[index].conditions[condIndex].status = 'normal';
-                    devices[index].conditions[condIndex].remark = '';
-                    devices[index].conditions[condIndex].inspectionTime = getCurrentDateTime();
-                    
-                    console.log(`更新条件时间: ${devices[index].conditions[condIndex].inspectionTime}`);
-                    
-                    saveDevices();
-                    renderDevices();
-                    renderInspectionRecords();
-                });
-
-                // 长按事件 - 切换到异常状态并打开备注模态框
-                let longPressTimer;
-                item.addEventListener('touchstart', (e) => {
-                    e.stopPropagation(); // 阻止事件冒泡
-                    
-                    console.log(`长按条件 ${condIndex}，准备切换到异常状态`);
-
-                    longPressTimer = setTimeout(() => {
-                        devices[index].conditions[condIndex].status = 'abnormal';
-                        currentDeviceId = index;
-                        currentConditionIndex = condIndex;
-                        devices[index].conditions[condIndex].inspectionTime = getCurrentDateTime();
-                        
-                        console.log(`更新条件时间: ${devices[index].conditions[condIndex].inspectionTime}`);
-                        
-                        saveDevices();
-                        renderDevices();
-                        renderInspectionRecords();
-                        openRemarkModal(devices[index].conditions[condIndex].name);
-                    }, 500); // 500ms 长按识别
-                });
-
-                item.addEventListener('mousedown', (e) => {
-                    e.stopPropagation(); // 阻止事件冒泡
-                    
-                    console.log(`鼠标按下条件 ${condIndex}，准备切换到异常状态`);
-
-                    longPressTimer = setTimeout(() => {
-                        devices[index].conditions[condIndex].status = 'abnormal';
-                        currentDeviceId = index;
-                        currentConditionIndex = condIndex;
-                        devices[index].conditions[condIndex].inspectionTime = getCurrentDateTime();
-                        
-                        console.log(`更新条件时间: ${devices[index].conditions[condIndex].inspectionTime}`);
-                        
-                        saveDevices();
-                        renderDevices();
-                        renderInspectionRecords();
-                        openRemarkModal(devices[index].conditions[condIndex].name);
-                    }, 500); // 500ms 长按识别
-                });
-
-                item.addEventListener('touchend', () => {
-                    clearTimeout(longPressTimer);
-                });
-
-                item.addEventListener('mouseup', () => {
-                    clearTimeout(longPressTimer);
-                });
-
-                item.addEventListener('mouseleave', () => {
-                    clearTimeout(longPressTimer);
-                });
-            });
-
             return card;
-        }
-
-        // 切换设备卡片状态
-        function toggleDeviceCard(card, isExpanded) {
-            const progressOverlay = card.querySelector('.mini-progress-overlay');
-            const miniInspectionInfo = card.querySelector('.mini-inspection-info');
-            const expandedContent = card.querySelector('.expanded-content');
-            
-            if (isExpanded) {
-                // 展开卡片 - 显示完整信息
-                progressOverlay.classList.add('hidden'); // 隐藏蓝色遮罩
-                miniInspectionInfo.classList.add('hidden'); // 隐藏迷你检定提醒
-                expandedContent.classList.remove('hidden'); // 显示展开内容
-                card.classList.add('expanded-card'); // 添加边框样式
-            } else {
-                // 折叠卡片 - 只显示要求的6个元素
-                progressOverlay.classList.remove('hidden'); // 显示蓝色遮罩
-                miniInspectionInfo.classList.remove('hidden'); // 显示迷你检定提醒
-                expandedContent.classList.add('hidden'); // 隐藏展开内容
-                card.classList.remove('expanded-card'); // 移除边框样式
-            }
         }
 
         // 打开添加设备模态框
@@ -1390,7 +2062,7 @@
 
             // 显示模态框
             addDeviceModal.classList.remove('hidden');
-            setTimeout(() => {
+            setTimeout(function() {
                 modalContent.classList.remove('scale-95', 'opacity-0');
                 modalContent.classList.add('scale-100', 'opacity-100');
             }, 10);
@@ -1405,14 +2077,14 @@
 
             modalContent.classList.remove('scale-100', 'opacity-100');
             modalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
+            setTimeout(function() {
                 addDeviceModal.classList.add('hidden');
             }, 300);
         }
 
         // 添加条件字段
         function addConditionField() {
-            const conditionsCount = conditionsContainer.querySelectorAll('.condition-item').length;
+            var conditionsCount = conditionsContainer.querySelectorAll('.condition-item').length;
 
             if (conditionsCount >= 5) {
                 alert('最多只能添加5个巡检项目');
@@ -1421,27 +2093,27 @@
 
             console.log('添加新的巡检项目字段，当前数量:', conditionsCount + 1);
 
-            const conditionItem = document.createElement('div');
+            var conditionItem = document.createElement('div');
             conditionItem.className = 'condition-item mb-3 flex items-center';
             conditionItem.innerHTML = `
                 <input type="text"
                     class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                     required>
-                <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn">
+                <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn touch-button">
                     <i class="fa-solid fa-minus-circle"></i>
                 </button>
             `;
             conditionsContainer.appendChild(conditionItem);
 
-            const removeBtn = conditionItem.querySelector('.remove-condition');
-            removeBtn.addEventListener('click', () => {
+            var removeBtn = conditionItem.querySelector('.remove-condition');
+            removeBtn.addEventListener('click', function() {
                 conditionItem.remove();
             });
         }
         
         // 添加预设条件
         function addPresetCondition(condition) {
-            const conditionsCount = conditionsContainer.querySelectorAll('.condition-item').length;
+            var conditionsCount = conditionsContainer.querySelectorAll('.condition-item').length;
 
             if (conditionsCount >= 5) {
                 alert('最多只能添加5个巡检项目');
@@ -1450,20 +2122,20 @@
 
             console.log('添加预设巡检项目:', condition);
 
-            const conditionItem = document.createElement('div');
+            var conditionItem = document.createElement('div');
             conditionItem.className = 'condition-item mb-3 flex items-center';
             conditionItem.innerHTML = `
                 <input type="text" value="${condition}"
                     class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                     required>
-                <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn">
+                <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn touch-button">
                     <i class="fa-solid fa-minus-circle"></i>
                 </button>
             `;
             conditionsContainer.appendChild(conditionItem);
 
-            const removeBtn = conditionItem.querySelector('.remove-condition');
-            removeBtn.addEventListener('click', () => {
+            var removeBtn = conditionItem.querySelector('.remove-condition');
+            removeBtn.addEventListener('click', function() {
                 conditionItem.remove();
             });
         }
@@ -1476,7 +2148,7 @@
             remarkContentInput.value = '';
 
             remarkModal.classList.remove('hidden');
-            setTimeout(() => {
+            setTimeout(function() {
                 remarkModalContent.classList.remove('scale-95', 'opacity-0');
                 remarkModalContent.classList.add('scale-100', 'opacity-100');
             }, 10);
@@ -1488,7 +2160,7 @@
 
             remarkModalContent.classList.remove('scale-100', 'opacity-100');
             remarkModalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
+            setTimeout(function() {
                 remarkModal.classList.add('hidden');
             }, 300);
         }
@@ -1497,92 +2169,66 @@
         function handleRemarkSubmit() {
             console.log('提交异常备注');
 
-            const remark = remarkContentInput.value;
+            var remark = remarkContentInput.value;
             if (remark) {
                 devices[currentDeviceId].conditions[currentConditionIndex].remark = remark;
-                saveDevices();
-                renderDevices();
-                renderInspectionRecords();
+                DataManager.saveDevices();
+                EventManager.refreshUI();
                 closeRemarkModalFunc();
+                UXManager.showOperationFeedback('异常备注已保存', 'success');
             } else {
-                alert('请输入异常描述');
+                showError('请输入异常描述', 'remark-content-error');
             }
         }
 
-        // 刷新所有当日设备 - 修复：只影响当天记录
+        // 刷新所有当日设备
         function refreshAllDevices() {
             console.log('刷新所有当日设备的巡检状态');
             
-            const today = getCurrentDate(); // 获取今天的日期字符串
+            const today = getCurrentDate();
+            let refreshCount = 0;
 
-            devices.forEach(device => {
-                device.conditions.forEach(condition => {
-                    // 只清空当天的记录，保护历史记录
+            devices.forEach((device, deviceIndex) => {
+                device.conditions.forEach((condition, conditionIndex) => {
                     if (condition.inspectionTime && condition.inspectionTime.startsWith(today)) {
-                        condition.status = 'pending';
-                        condition.remark = '';
-                        condition.inspectionTime = '';
+                        DataManager.updateCondition(deviceIndex, conditionIndex, 'pending', '');
+                        refreshCount++;
                     }
                 });
             });
 
-            saveDevices();
-            renderDevices();
-            renderInspectionRecords();
+            EventManager.refreshUI();
+            UXManager.showOperationFeedback(`已刷新 ${refreshCount} 个巡检项目的状态`, 'success');
         }
         
-        // 确认所有设备 - 修复：只影响当天记录
+        // 确认所有设备
         function confirmAllDevices() {
             console.log('确认所有设备的所有巡检项目');
             
-            const today = getCurrentDate(); // 获取今天的日期字符串
+            const today = getCurrentDate();
+            let confirmCount = 0;
 
-            devices.forEach(device => {
-                device.conditions.forEach(condition => {
-                    // 只处理今天未巡检的项目
+            devices.forEach((device, deviceIndex) => {
+                device.conditions.forEach((condition, conditionIndex) => {
                     if (!condition.inspectionTime || !condition.inspectionTime.startsWith(today)) {
-                        condition.status = 'normal';
-                        condition.remark = '';
-                        condition.inspectionTime = getCurrentDateTime();
-                    }
-                    // 如果今天已经巡检但状态是异常，也改为正常
-                    else if (condition.inspectionTime.startsWith(today) && condition.status === 'abnormal') {
-                        condition.status = 'normal';
-                        condition.remark = '';
+                        DataManager.updateCondition(deviceIndex, conditionIndex, 'normal', '');
+                        confirmCount++;
+                    } else if (condition.inspectionTime.startsWith(today) && condition.status === 'abnormal') {
+                        DataManager.updateCondition(deviceIndex, conditionIndex, 'normal', '');
+                        confirmCount++;
                     }
                 });
             });
 
-            saveDevices();
-            renderDevices();
-            renderInspectionRecords();
-        }
-
-        // 刷新单个设备 - 修复：只影响当天记录
-        function refreshSingleDevice(index) {
-            console.log(`刷新设备 ${index} 的巡检状态`);
-
-            const today = getCurrentDate(); // 获取今天的日期字符串
-            
-            devices[index].conditions.forEach(condition => {
-                // 只重置今天的数据，保护历史记录
-                if (condition.inspectionTime && condition.inspectionTime.startsWith(today)) {
-                    condition.status = 'pending';
-                    condition.remark = '';
-                    condition.inspectionTime = '';
-                }
-            });
-
-            saveDevices();
-            renderDevices();
-            renderInspectionRecords();
+            EventManager.refreshUI();
+            UXManager.showOperationFeedback(`已确认 ${confirmCount} 个巡检项目的状态`, 'success');
         }
 
         // 打开编辑设备模态框
         function openEditDeviceModal(index) {
             console.log('打开编辑设备模态框');
 
-            const device = devices[index];
+            var device = devices[index];
             
             editDeviceIndexInput.value = index;
             editDeviceNameInput.value = device.name;
@@ -1596,27 +2242,27 @@
             editLastInspectionDateInput.value = device.lastInspectionDate;
 
             editConditionsContainer.innerHTML = '';
-            device.conditions.forEach(condition => {
-                const conditionItem = document.createElement('div');
+            device.conditions.forEach(function(condition) {
+                var conditionItem = document.createElement('div');
                 conditionItem.className = 'condition-item mb-3 flex items-center';
                 conditionItem.innerHTML = `
                     <input type="text" value="${condition.name}"
                         class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                         required>
-                    <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn">
+                    <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn touch-button">
                         <i class="fa-solid fa-minus-circle"></i>
                     </button>
                 `;
                 editConditionsContainer.appendChild(conditionItem);
 
-                const removeBtn = conditionItem.querySelector('.remove-condition');
-                removeBtn.addEventListener('click', () => {
+                var removeBtn = conditionItem.querySelector('.remove-condition');
+                removeBtn.addEventListener('click', function() {
                     conditionItem.remove();
                 });
             });
 
             editDeviceModal.classList.remove('hidden');
-            setTimeout(() => {
+            setTimeout(function() {
                 editModalContent.classList.remove('scale-95', 'opacity-0');
                 editModalContent.classList.add('scale-100', 'opacity-100');
             }, 10);
@@ -1628,7 +2274,7 @@
 
             editModalContent.classList.remove('scale-100', 'opacity-100');
             editModalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
+            setTimeout(function() {
                 editDeviceModal.classList.add('hidden');
             }, 300);
         }
@@ -1637,32 +2283,63 @@
         function handleAddDevice() {
             console.log('处理添加设备');
 
-            const deviceName = document.getElementById('device-name').value;
-            const deviceCategory = document.getElementById('device-category').value;
-            const deviceLocation = document.getElementById('device-location').value;
-            const deviceModel = document.getElementById('device-model').value;
-            const deviceManufacturer = document.getElementById('device-manufacturer').value;
-            const deviceSerialNumber = document.getElementById('device-serial-number').value;
-            const deviceRange = document.getElementById('device-range').value;
-            const inspectionCycle = parseInt(document.getElementById('inspection-cycle').value);
-            const lastInspectionDate = document.getElementById('last-inspection-date').value;
+            // 清除之前的错误信息
+            clearErrors();
 
-            const conditionInputs = conditionsContainer.querySelectorAll('input[type="text"]');
-            const conditions = [];
-            conditionInputs.forEach(input => {
+            var deviceName = document.getElementById('device-name').value;
+            var deviceCategory = document.getElementById('device-category').value;
+            var deviceLocation = document.getElementById('device-location').value;
+            var deviceModel = document.getElementById('device-model').value;
+            var deviceManufacturer = document.getElementById('device-manufacturer').value;
+            var deviceSerialNumber = document.getElementById('device-serial-number').value;
+            var deviceRange = document.getElementById('device-range').value;
+            var inspectionCycle = parseInt(document.getElementById('inspection-cycle').value);
+            var lastInspectionDate = document.getElementById('last-inspection-date').value;
+
+            var conditionInputs = conditionsContainer.querySelectorAll('input[type="text"]');
+            var conditions = [];
+            conditionInputs.forEach(function(input) {
                 if (input.value) {
-                    conditions.push({
-                        name: input.value,
-                        status: 'pending',
-                        remark: '',
-                        inspectionTime: '',
-                        history: []  // 修复：添加历史记录字段
-                    });
+                    conditions.push(input.value);
                 }
             });
 
-            if (deviceName && deviceCategory && deviceLocation && conditions.length > 0) {
-                devices.push({
+            // 验证表单
+            var isValid = true;
+            
+            if (!deviceName) {
+                showError('请输入计量器具名称', 'device-name-error');
+                isValid = false;
+            }
+            
+            if (!deviceCategory) {
+                showError('请选择类别', 'device-category-error');
+                isValid = false;
+            }
+            
+            if (!deviceLocation) {
+                showError('请输入安装地点', 'device-location-error');
+                isValid = false;
+            }
+            
+            if (!inspectionCycle || inspectionCycle < 1 || inspectionCycle > 60) {
+                showError('请输入有效的检定周期（1-60个月）', 'inspection-cycle-error');
+                isValid = false;
+            }
+            
+            if (!lastInspectionDate) {
+                showError('请选择上次检定日期', 'last-inspection-date-error');
+                isValid = false;
+            }
+            
+            if (conditions.length === 0) {
+                showError('请至少添加一个巡检项目', 'conditions-error');
+                isValid = false;
+            }
+
+            if (isValid) {
+                var deviceData = {
+                    id: DataManager.generateDeviceId(),
                     name: deviceName,
                     category: deviceCategory,
                     location: deviceLocation,
@@ -1672,15 +2349,26 @@
                     range: deviceRange,
                     lastInspectionDate: lastInspectionDate,
                     inspectionCycle: inspectionCycle,
-                    conditions: conditions
-                });
+                    conditions: conditions.map(function(condition) {
+                        return {
+                            id: DataManager.generateConditionId(),
+                            name: condition,
+                            status: 'pending',
+                            remark: '',
+                            inspectionTime: '',
+                            history: []
+                        };
+                    }),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
 
-                saveDevices();
-                renderDevices();
-                renderInspectionRecords();
+                devices.push(deviceData);
+                DataManager.saveDevices();
+                EventManager.refreshUI();
                 closeAddDeviceModal();
-            } else {
-                alert('请填写必填字段（计量器具名称、类别、安装地点）和至少一个巡检项目');
+                
+                UXManager.showOperationFeedback('设备添加成功', 'success');
             }
         }
 
@@ -1688,33 +2376,64 @@
         function handleEditDevice() {
             console.log('处理编辑设备');
 
-            const index = parseInt(editDeviceIndexInput.value);
-            const deviceName = editDeviceNameInput.value;
-            const deviceCategory = editDeviceCategoryInput.value;
-            const deviceLocation = editDeviceLocationInput.value;
-            const deviceModel = editDeviceModelInput.value;
-            const deviceManufacturer = editDeviceManufacturerInput.value;
-            const deviceSerialNumber = editDeviceSerialNumberInput.value;
-            const deviceRange = editDeviceRangeInput.value;
-            const inspectionCycle = parseInt(editInspectionCycleInput.value);
-            const lastInspectionDate = editLastInspectionDateInput.value;
+            // 清除之前的错误信息
+            clearErrors();
 
-            const conditionInputs = editConditionsContainer.querySelectorAll('input[type="text"]');
-            const conditions = [];
-            conditionInputs.forEach(input => {
+            var index = parseInt(editDeviceIndexInput.value);
+            var deviceName = editDeviceNameInput.value;
+            var deviceCategory = editDeviceCategoryInput.value;
+            var deviceLocation = editDeviceLocationInput.value;
+            var deviceModel = editDeviceModelInput.value;
+            var deviceManufacturer = editDeviceManufacturerInput.value;
+            var deviceSerialNumber = editDeviceSerialNumberInput.value;
+            var deviceRange = editDeviceRangeInput.value;
+            var inspectionCycle = parseInt(editInspectionCycleInput.value);
+            var lastInspectionDate = editLastInspectionDateInput.value;
+
+            var conditionInputs = editConditionsContainer.querySelectorAll('input[type="text"]');
+            var conditions = [];
+            conditionInputs.forEach(function(input) {
                 if (input.value) {
-                    conditions.push({
-                        name: input.value,
-                        status: 'pending',
-                        remark: '',
-                        inspectionTime: '',
-                        history: []  // 修复：添加历史记录字段
-                    });
+                    conditions.push(input.value);
                 }
             });
 
-            if (deviceName && deviceCategory && deviceLocation && conditions.length > 0) {
-                devices[index] = {
+            // 验证表单
+            var isValid = true;
+            
+            if (!deviceName) {
+                showError('请输入计量器具名称', 'edit-device-name-error');
+                isValid = false;
+            }
+            
+            if (!deviceCategory) {
+                showError('请选择类别', 'edit-device-category-error');
+                isValid = false;
+            }
+            
+            if (!deviceLocation) {
+                showError('请输入安装地点', 'edit-device-location-error');
+                isValid = false;
+            }
+            
+            if (!inspectionCycle || inspectionCycle < 1 || inspectionCycle > 60) {
+                showError('请输入有效的检定周期（1-60个月）', 'edit-inspection-cycle-error');
+                isValid = false;
+            }
+            
+            if (!lastInspectionDate) {
+                showError('请选择上次检定日期', 'edit-last-inspection-date-error');
+                isValid = false;
+            }
+            
+            if (conditions.length === 0) {
+                showError('请至少添加一个巡检项目', 'edit-conditions-error');
+                isValid = false;
+            }
+
+            if (isValid) {
+                var deviceData = {
+                    id: devices[index].id,
                     name: deviceName,
                     category: deviceCategory,
                     location: deviceLocation,
@@ -1724,15 +2443,28 @@
                     range: deviceRange,
                     lastInspectionDate: lastInspectionDate,
                     inspectionCycle: inspectionCycle,
-                    conditions: conditions
+                    conditions: conditions.map(function(condition, i) {
+                        // 保留原有的条件ID（如果存在）或生成新的
+                        const existingCondition = devices[index].conditions[i];
+                        return {
+                            id: existingCondition ? existingCondition.id : DataManager.generateConditionId(),
+                            name: condition,
+                            status: existingCondition ? existingCondition.status : 'pending',
+                            remark: existingCondition ? existingCondition.remark : '',
+                            inspectionTime: existingCondition ? existingCondition.inspectionTime : '',
+                            history: existingCondition ? existingCondition.history : []
+                        };
+                    }),
+                    createdAt: devices[index].createdAt,
+                    updatedAt: new Date().toISOString()
                 };
 
-                saveDevices();
-                renderDevices();
-                renderInspectionRecords();
+                devices[index] = deviceData;
+                DataManager.saveDevices();
+                EventManager.refreshUI();
                 closeEditDeviceModal();
-            } else {
-                alert('请填写必填字段（计量器具名称、类别、安装地点）和至少一个巡检项目');
+                
+                UXManager.showOperationFeedback('设备编辑成功', 'success');
             }
         }
 
@@ -1740,20 +2472,24 @@
         function handleDeleteDevice() {
             console.log('处理删除设备');
 
-            const index = parseInt(editDeviceIndexInput.value);
+            var index = parseInt(editDeviceIndexInput.value);
             
-            if (confirm(`确定要删除设备 "${devices[index].name}" 吗？此操作无法撤销！`)) {
-                devices.splice(index, 1);
-                saveDevices();
-                renderDevices();
-                renderInspectionRecords();
-                closeEditDeviceModal();
-            }
+            UXManager.showConfirm(`确定要删除设备 "${devices[index].name}" 吗？此操作无法撤销！`, '删除设备').then(confirmed => {
+                if (confirmed) {
+                    var deviceName = devices[index].name;
+                    devices.splice(index, 1);
+                    DataManager.saveDevices();
+                    EventManager.refreshUI();
+                    closeEditDeviceModal();
+                    
+                    UXManager.showOperationFeedback(`设备 "${deviceName}" 已删除`, 'success');
+                }
+            });
         }
 
         // 添加编辑条件字段
         function editAddConditionField() {
-            const conditionsCount = editConditionsContainer.querySelectorAll('.condition-item').length;
+            var conditionsCount = editConditionsContainer.querySelectorAll('.condition-item').length;
 
             if (conditionsCount >= 5) {
                 alert('最多只能添加5个巡检项目');
@@ -1762,123 +2498,87 @@
 
             console.log('添加新的编辑巡检项目字段，当前数量:', conditionsCount + 1);
 
-            const conditionItem = document.createElement('div');
+            var conditionItem = document.createElement('div');
             conditionItem.className = 'condition-item mb-3 flex items-center';
             conditionItem.innerHTML = `
                 <input type="text"
                     class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                     required>
-                <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn">
+                <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn touch-button">
                     <i class="fa-solid fa-minus-circle"></i>
                 </button>
             `;
             editConditionsContainer.appendChild(conditionItem);
 
-            const removeBtn = conditionItem.querySelector('.remove-condition');
-            removeBtn.addEventListener('click', () => {
+            var removeBtn = conditionItem.querySelector('.remove-condition');
+            removeBtn.addEventListener('click', function() {
+                conditionItem.remove();
+            });
+        }
+        
+        // 编辑模态框添加预设条件
+        function editAddPresetCondition(condition) {
+            var conditionsCount = editConditionsContainer.querySelectorAll('.condition-item').length;
+
+            if (conditionsCount >= 5) {
+                alert('最多只能添加5个巡检项目');
+                return;
+            }
+
+            console.log('添加编辑预设巡检项目:', condition);
+
+            var conditionItem = document.createElement('div');
+            conditionItem.className = 'condition-item mb-3 flex items-center';
+            conditionItem.innerHTML = `
+                <input type="text" value="${condition}"
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                    required>
+                <button type="button" class="remove-condition ml-2 text-gray-400 hover:text-red-500 fixed-size-btn touch-button">
+                    <i class="fa-solid fa-minus-circle"></i>
+                </button>
+            `;
+            editConditionsContainer.appendChild(conditionItem);
+
+            var removeBtn = conditionItem.querySelector('.remove-condition');
+            removeBtn.addEventListener('click', function() {
                 conditionItem.remove();
             });
         }
 
-        // 获取下一次检定日期
-        function getNextInspectionDate(lastInspectionDate, inspectionCycle) {
-            const date = new Date(lastInspectionDate);
-            date.setMonth(date.getMonth() + inspectionCycle);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        // 判断是否在10天内
-        function isWithinTenDays(dateStr) {
-            const targetDate = new Date(dateStr);
-            const now = new Date();
-            const diffTime = Math.abs(targetDate - now);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays <= 10;
-        }
-
         // 获取当前日期和时间
         function getCurrentDateTime() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = String(now.getMonth() + 1).padStart(2, '0');
+            var day = String(now.getDate()).padStart(2, '0');
+            var hours = String(now.getHours()).padStart(2, '0');
+            var minutes = String(now.getMinutes()).padStart(2, '0');
+            var seconds = String(now.getSeconds()).padStart(2, '0');
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
         }
 
         // 获取当前日期（仅日期部分）
         function getCurrentDate() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = String(now.getMonth() + 1).padStart(2, '0');
+            var day = String(now.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
         }
 
-        // 获取最近巡检时间 - 修复问题1：同时检查历史记录
-        function getLastInspectionTime(device) {
-            let lastTime = null;
-            let isToday = false;
-            let hasHistory = false;
-            
-            // 首先检查当前状态的时间
-            device.conditions.forEach(condition => {
-                if (condition.inspectionTime) {
-                    const time = new Date(condition.inspectionTime);
-                    if (!lastTime || time > lastTime) {
-                        lastTime = time;
-                    }
-                }
-            });
-            
-            // 如果没有当前状态的时间，检查历史记录
-            if (!lastTime) {
-                device.conditions.forEach(condition => {
-                    if (condition.history && condition.history.length > 0) {
-                        condition.history.forEach(historyRecord => {
-                            if (historyRecord.inspectionTime) {
-                                const time = new Date(historyRecord.inspectionTime);
-                                if (!lastTime || time > lastTime) {
-                                    lastTime = time;
-                                    hasHistory = true;
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-            
-            if (lastTime) {
-                const today = new Date();
-                isToday = lastTime.toDateString() === today.toDateString();
-                const month = String(lastTime.getMonth() + 1).padStart(2, '0');
-                const day = String(lastTime.getDate()).padStart(2, '0');
-                const hours = String(lastTime.getHours()).padStart(2, '0');
-                const minutes = String(lastTime.getMinutes()).padStart(2, '0');
-                return {
-                    date: isToday ? '今日' : `${month}.${day}`,
-                    time: `${hours}:${minutes}`,
-                    isToday: isToday,
-                    hasHistory: hasHistory
-                };
-            } else {
-                return {
-                    date: '暂无',
-                    time: '巡检',
-                    isToday: false,
-                    hasHistory: false
-                };
-            }
+        // 获取下一个检定日期
+        function getNextInspectionDate(lastInspectionDate, inspectionCycle) {
+            return DateUtils.getNextInspectionDate(lastInspectionDate, inspectionCycle);
         }
 
-        // 渲染巡检记录 - 修复问题2：为每个日期添加进度显示
-        function renderInspectionRecords() {
-            console.log('开始渲染巡检记录');
+        // 判断是否在10天内
+        function isWithinTenDays(dateStr) {
+            return DateUtils.isWithinDays(dateStr, 10);
+        }
+
+        // 统一的巡检记录渲染
+        const renderInspectionRecords = PerformanceManager.debounce(function() {
+            console.log('开始渲染巡检记录 - 使用统一状态管理');
 
             inspectionRecordsContainer.innerHTML = '';
             if (devices.length === 0) {
@@ -1886,40 +2586,51 @@
                 return;
             }
 
-            // 收集所有历史记录
+            // 收集所有记录 - 使用统一的状态管理
             const allRecords = [];
-            
+            const processedRecords = new Set();
+            const today = getCurrentDate();
+
             devices.forEach(device => {
+                const deviceStatus = StatusManager.getDeviceStatus(device);
+                
+                // 收集历史记录
                 device.conditions.forEach(condition => {
-                    // 收集历史记录
                     if (condition.history && condition.history.length > 0) {
                         condition.history.forEach(record => {
+                            const recordKey = `${device.id}-${condition.id}-${record.date}-${record.inspectionTime}`;
+                            if (!processedRecords.has(recordKey)) {
+                                allRecords.push({
+                                    device: device,
+                                    condition: condition,
+                                    date: record.date,
+                                    status: record.status,
+                                    remark: record.remark,
+                                    inspectionTime: record.inspectionTime
+                                });
+                                processedRecords.add(recordKey);
+                            }
+                        });
+                    }
+
+                    // 收集当天记录
+                    if (condition.inspectionTime && condition.inspectionTime.startsWith(today) && condition.status !== 'pending') {
+                        const recordKey = `${device.id}-${condition.id}-${today}-${condition.inspectionTime}`;
+                        if (!processedRecords.has(recordKey)) {
                             allRecords.push({
                                 device: device,
                                 condition: condition,
-                                date: record.date,
-                                status: record.status,
-                                remark: record.remark,
-                                inspectionTime: record.inspectionTime
+                                date: today,
+                                status: condition.status,
+                                remark: condition.remark,
+                                inspectionTime: condition.inspectionTime
                             });
-                        });
-                    }
-                    
-                    // 收集当前记录（如果是今天且已巡检）
-                    const today = getCurrentDate();
-                    if (condition.inspectionTime && condition.inspectionTime.startsWith(today) && condition.status !== 'pending') {
-                        allRecords.push({
-                            device: device,
-                            condition: condition,
-                            date: today,
-                            status: condition.status,
-                            remark: condition.remark,
-                            inspectionTime: condition.inspectionTime
-                        });
+                            processedRecords.add(recordKey);
+                        }
                     }
                 });
             });
-            
+
             // 按日期分组
             const recordsByDate = {};
             allRecords.forEach(record => {
@@ -1928,32 +2639,30 @@
                 }
                 recordsByDate[record.date].push(record);
             });
-            
+
             // 按日期排序
             const sortedDates = Object.keys(recordsByDate).sort((a, b) => new Date(b) - new Date(a));
             
-            // 如果没有记录
             if (sortedDates.length === 0) {
                 inspectionRecordsContainer.innerHTML = '<div class="text-center py-8 text-gray-500">暂无巡检记录</div>';
                 return;
             }
-            
+
             // 渲染每个日期的记录
             sortedDates.forEach(date => {
-                // 如果未初始化，默认展开今天和昨天的记录
+                // 初始化展开状态
                 if (expandedDates[date] === undefined) {
                     const today = getCurrentDate();
                     const yesterday = new Date();
                     yesterday.setDate(yesterday.getDate() - 1);
                     const yesterdayStr = yesterday.toISOString().split('T')[0];
-                    
                     expandedDates[date] = (date === today || date === yesterdayStr);
                 }
-                
+
                 const dateDiv = document.createElement('div');
                 dateDiv.className = 'mb-6';
                 
-                // 日期标题和折叠按钮
+                // 日期标题
                 const dateHeader = document.createElement('div');
                 dateHeader.className = 'record-date';
                 dateHeader.innerHTML = `
@@ -1972,20 +2681,31 @@
                 const recordsDiv = document.createElement('div');
                 recordsDiv.className = `space-y-3 ${expandedDates[date] ? '' : 'hidden'}`;
                 
-                // 修复问题2：为每个日期都添加进度显示
-                // 计算该日期的设备巡检进度
-                const inspectedDevices = new Set();
+                // 使用统一状态管理计算进度
                 const dateRecords = recordsByDate[date] || [];
+                const dateDevices = new Set(dateRecords.map(record => record.device.id));
                 
-                dateRecords.forEach(record => {
-                    inspectedDevices.add(record.device.name + record.device.serialNumber);
+                let completedDevices = 0;
+                dateDevices.forEach(deviceId => {
+                    const device = devices.find(d => d.id === deviceId);
+                    if (device) {
+                        const status = StatusManager.getDeviceStatus(device);
+                        // 检查该设备在指定日期的完成情况
+                        const deviceDateRecords = dateRecords.filter(record => 
+                            record.device.id === deviceId
+                        );
+                        const completedConditions = new Set(deviceDateRecords.map(record => record.condition.id));
+                        
+                        if (completedConditions.size === device.conditions.length) {
+                            completedDevices++;
+                        }
+                    }
                 });
                 
                 const totalDevices = devices.length;
-                const completedDevices = inspectedDevices.size;
                 const progressPercent = totalDevices > 0 ? Math.round((completedDevices / totalDevices) * 100) : 0;
                 
-                // 添加进度条
+                // 进度条
                 const progressBarHtml = `
                     <div class="mb-3">
                         <div class="flex justify-between text-xs mb-1">
@@ -2000,23 +2720,30 @@
                 
                 recordsDiv.innerHTML = progressBarHtml;
                 
-                // 按设备分组
+                // 按设备分组渲染
                 const recordsByDevice = {};
                 dateRecords.forEach(record => {
-                    const deviceId = record.device.name + record.device.serialNumber;
+                    const deviceId = record.device.id;
                     if (!recordsByDevice[deviceId]) {
                         recordsByDevice[deviceId] = {
                             device: record.device,
-                            conditions: {}
+                            conditions: {},
+                            latestTime: ''
                         };
                     }
                     
-                    // 记录每个条件的状态
-                    recordsByDevice[deviceId].conditions[record.condition.name] = {
+                    recordsByDevice[deviceId].conditions[record.condition.id] = {
                         status: record.status,
                         remark: record.remark,
                         inspectionTime: record.inspectionTime
                     };
+                    
+                    if (record.inspectionTime) {
+                        const time = record.inspectionTime.split(' ')[1] ? record.inspectionTime.split(' ')[1].substr(0, 5) : '';
+                        if (time > recordsByDevice[deviceId].latestTime) {
+                            recordsByDevice[deviceId].latestTime = time;
+                        }
+                    }
                 });
                 
                 // 渲染每个设备的记录
@@ -2024,51 +2751,36 @@
                     const deviceDiv = document.createElement('div');
                     deviceDiv.className = 'bg-white rounded-lg p-3 shadow-sm';
                     
-                    // 查找该设备在这一天的最晚巡检时间
-                    let latestTime = '';
-                    Object.values(record.conditions).forEach(conditionRecord => {
-                        if (conditionRecord.inspectionTime) {
-                            const time = conditionRecord.inspectionTime.split(' ')[1]?.substr(0, 5) || '';
-                            if (time > latestTime) {
-                                latestTime = time;
-                            }
-                        }
-                    });
-                    
                     const deviceHeader = document.createElement('div');
                     deviceHeader.className = 'flex justify-between items-center mb-2';
                     deviceHeader.innerHTML = `
                         <span class="font-medium">${record.device.name} <span class="text-gray-500 text-sm">${record.device.location || ''}</span></span>
-                        ${latestTime ? `<span class="text-gray-500 text-xs">${latestTime}</span>` : ''}
+                        ${record.latestTime ? `<span class="text-gray-500 text-xs">${record.latestTime}</span>` : ''}
                     `;
                     deviceDiv.appendChild(deviceHeader);
                     
                     const conditionsDiv = document.createElement('div');
                     conditionsDiv.className = 'flex flex-wrap gap-1.5';
                     
-                    // 显示设备的所有条件状态
+                    // 使用统一的状态显示
                     record.device.conditions.forEach(deviceCondition => {
-                        const conditionRecord = record.conditions[deviceCondition.name];
+                        const conditionRecord = record.conditions[deviceCondition.id];
                         const status = conditionRecord ? conditionRecord.status : 'pending';
+                        const display = StatusManager.getConditionDisplay({
+                            ...deviceCondition,
+                            status: status,
+                            inspectionTime: conditionRecord ? conditionRecord.inspectionTime : ''
+                        });
                         
                         const conditionItem = document.createElement('div');
-                        conditionItem.className = `flex items-center px-2 py-1 rounded-full text-xs ${
-                            status === 'normal' ? 'bg-green-100 text-green-800' : 
-                            status === 'abnormal' ? 'bg-red-100 text-red-800' : 
-                            'bg-gray-100 text-gray-800'
-                        }`;
+                        conditionItem.className = `flex items-center px-2 py-1 rounded-full text-xs ${display.className} ${display.textColor}`;
                         conditionItem.innerHTML = `
-                            <div class="w-1.5 h-1.5 rounded-full ${
-                                status === 'normal' ? 'bg-green-600' : 
-                                status === 'abnormal' ? 'bg-red-600' : 
-                                'bg-gray-400'
-                            } mr-1"></div>
+                            <div class="status-indicator ${display.statusClass}"></div>
                             ${deviceCondition.name}
                         `;
                         
-                        // 添加提示信息
                         if (status === 'abnormal' && conditionRecord && conditionRecord.remark) {
-                            conditionItem.title = `异常描述: ${conditionRecord.remark}`;
+                            conditionItem.title = '异常描述: ' + conditionRecord.remark;
                         }
                         
                         conditionsDiv.appendChild(conditionItem);
@@ -2082,33 +2794,33 @@
                 inspectionRecordsContainer.appendChild(dateDiv);
             });
 
-            console.log('巡检记录渲染完成');
-        }
+            console.log('巡检记录渲染完成 - 使用统一状态管理');
+        }, 50);
         
-        // 新增：格式化显示日期
+        // 格式化显示日期
         function formatDisplayDate(dateStr) {
-            const today = getCurrentDate();
-            const yesterday = new Date();
+            var today = getCurrentDate();
+            var yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            var yesterdayStr = yesterday.toISOString().split('T')[0];
             
             if (dateStr === today) {
                 return '今天';
             } else if (dateStr === yesterdayStr) {
                 return '昨天';
             } else {
-                const date = new Date(dateStr);
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${date.getFullYear()}-${month}-${day}`;
+                var date = new Date(dateStr);
+                var month = String(date.getMonth() + 1).padStart(2, '0');
+                var day = String(date.getDate()).padStart(2, '0');
+                return date.getFullYear() + '-' + month + '-' + day;
             }
         }
         
         // 切换所有记录折叠状态
         function toggleAllRecords() {
-            const allExpanded = Object.values(expandedDates).every(val => val);
+            var allExpanded = Object.values(expandedDates).every(function(val) { return val; });
             
-            Object.keys(expandedDates).forEach(date => {
+            Object.keys(expandedDates).forEach(function(date) {
                 expandedDates[date] = !allExpanded;
             });
             
@@ -2118,63 +2830,83 @@
         // 导出设备数据
         function exportDevices() {
             if (devices.length === 0) {
-                alert('没有设备数据可导出');
+                UXManager.showOperationFeedback('没有设备数据可导出', 'error');
                 return;
             }
             
-            let exportText = '计量器具名称,类别,安装地点,规格型号,生产厂家,出厂编号,检定周期(月),测量范围,上次检定日期,巡检项目\n';
+            var exportText = '计量器具名称,类别,安装地点,规格型号,生产厂家,出厂编号,检定周期(月),测量范围,上次检定日期,巡检项目\n';
             
-            devices.forEach(device => {
-                const conditions = device.conditions.map(c => c.name).join(';');
-                exportText += `${device.name},${device.category},${device.location},${device.model || ''},${device.manufacturer || ''},${device.serialNumber || ''},${device.inspectionCycle},${device.range || ''},${device.lastInspectionDate},${conditions}\n`;
+            devices.forEach(function(device) {
+                var conditions = device.conditions.map(function(c) { return c.name; }).join(';');
+                exportText += device.name + ',' + device.category + ',' + device.location + ',' + (device.model || '') + ',' + (device.manufacturer || '') + ',' + (device.serialNumber || '') + ',' + device.inspectionCycle + ',' + (device.range || '') + ',' + device.lastInspectionDate + ',' + conditions + '\n';
             });
             
-            const blob = new Blob([exportText], {type: 'text/plain;charset=utf-8'});
-            const url = URL.createObjectURL(blob);
+            var blob = new Blob([exportText], {type: 'text/plain;charset=utf-8'});
+            var url = URL.createObjectURL(blob);
             
-            const a = document.createElement('a');
+            var a = document.createElement('a');
             a.href = url;
-            a.download = `巡检助手数据_${new Date().toISOString().split('T')[0]}.txt`;
+            a.download = '巡检助手数据_' + new Date().toISOString().split('T')[0] + '.txt';
             document.body.appendChild(a);
             a.click();
             
-            setTimeout(() => {
+            setTimeout(function() {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             }, 100);
             
             console.log('设备数据导出成功');
+            UXManager.showOperationFeedback('数据导出成功', 'success');
         }
         
         // 处理文件导入
         function handleFileImport(event) {
-            const file = event.target.files[0];
+            var file = event.target.files[0];
             if (!file) return;
             
-            const reader = new FileReader();
+            showLoading('正在导入数据...');
+            
+            var reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const content = e.target.result;
-                    const lines = content.split('\n').filter(line => line.trim() !== '');
+                    var content = e.target.result;
+                    var lines = content.split('\n').filter(function(line) { return line.trim() !== ''; });
                     
                     // 移除标题行
                     if (lines[0].includes('计量器具名称')) {
                         lines.shift();
                     }
                     
-                    const newDevices = [];
+                    var newDevices = [];
                     
-                    lines.forEach(line => {
-                        const [name, category, location, model, manufacturer, serialNumber, inspectionCycle, range, lastInspectionDate, conditionStr] = line.split(',');
-                        const conditions = conditionStr.split(';').map(name => ({
-                            name: name.trim(),
-                            status: 'pending',
-                            remark: '',
-                            inspectionTime: '',
-                            history: []  // 修复：添加历史记录字段
-                        }));
+                    lines.forEach(function(line) {
+                        var parts = line.split(',');
+                        if (parts.length < 10) return;
+                        
+                        var name = parts[0];
+                        var category = parts[1];
+                        var location = parts[2];
+                        var model = parts[3];
+                        var manufacturer = parts[4];
+                        var serialNumber = parts[5];
+                        var inspectionCycle = parts[6];
+                        var range = parts[7];
+                        var lastInspectionDate = parts[8];
+                        var conditionStr = parts[9];
+                        
+                        var conditions = conditionStr.split(';').map(function(name) {
+                            return {
+                                id: DataManager.generateConditionId(),
+                                name: name.trim(),
+                                status: 'pending',
+                                remark: '',
+                                inspectionTime: '',
+                                history: []
+                            };
+                        });
                         
                         newDevices.push({
+                            id: DataManager.generateDeviceId(),
                             name: name.trim(),
                             category: category.trim(),
                             location: location.trim(),
@@ -2184,23 +2916,32 @@
                             range: range.trim(),
                             lastInspectionDate: lastInspectionDate.trim(),
                             inspectionCycle: parseInt(inspectionCycle.trim()),
-                            conditions: conditions
+                            conditions: conditions,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
                         });
                     });
                     
                     if (newDevices.length > 0) {
                         devices = newDevices;
-                        saveDevices();
-                        renderDevices();
-                        renderInspectionRecords();
-                        alert(`成功导入 ${newDevices.length} 个设备数据`);
+                        DataManager.saveDevices();
+                        EventManager.refreshUI();
+                        hideLoading();
+                        UXManager.showOperationFeedback('成功导入 ' + newDevices.length + ' 个设备数据', 'success');
                     } else {
-                        alert('导入失败：未找到有效设备数据');
+                        hideLoading();
+                        UXManager.showOperationFeedback('导入失败：未找到有效设备数据', 'error');
                     }
                 } catch (error) {
                     console.error('导入数据失败:', error);
-                    alert('导入失败：文件格式不正确');
+                    hideLoading();
+                    UXManager.showOperationFeedback('导入失败：文件格式不正确', 'error');
                 }
+            };
+            
+            reader.onerror = function() {
+                hideLoading();
+                UXManager.showOperationFeedback('文件读取失败，请重试', 'error');
             };
             
             reader.readAsText(file);
@@ -2210,27 +2951,25 @@
         // 删除所有设备
         function deleteAllDevices() {
             if (devices.length === 0) {
-                alert('当前没有设备数据可删除');
+                UXManager.showOperationFeedback('当前没有设备数据可删除', 'error');
                 return;
             }
             
-            // 确认对话框
-            const confirmDelete = confirm(`警告：您即将删除所有设备数据（共 ${devices.length} 个设备）！\n\n此操作不可恢复，请确认是否继续？`);
+            UXManager.showConfirm(`警告：您即将删除所有设备数据（共 ${devices.length} 个设备）！\n\n此操作不可恢复，请确认是否继续？`, '删除所有设备').then(confirmed => {
+                if (confirmed) {
+                    // 执行删除
+                    devices = [];
+                    DataManager.saveDevices();
+                    EventManager.refreshUI();
 
-            if (confirmDelete) {
-                // 执行删除
-                devices = [];
-                saveDevices();
-                renderDevices();
-                renderInspectionRecords();
+                    // 重置展开状态
+                    expandedCardIndex = -1;
+                    expandedDates = {};
 
-                // 重置展开状态
-                expandedCardIndex = -1;
-                expandedDates = {};
-
-                alert('所有设备数据已成功删除！');
-                console.log('所有设备数据已删除');
-            }
+                    UXManager.showOperationFeedback('所有设备数据已成功删除！', 'success');
+                    console.log('所有设备数据已删除');
+                }
+            });
         }
 
         // 为Android移植准备的文件访问权限申请
@@ -2246,8 +2985,50 @@
             }
         }
 
-        // 初始化时申请文件权限
-        requestFilePermission();
+        // 显示加载指示器
+        function showLoading(message) {
+            if (loadingIndicator) {
+                var messageEl = loadingIndicator.querySelector('span');
+                if (message && messageEl) {
+                    messageEl.textContent = message;
+                }
+                loadingIndicator.classList.remove('hidden');
+            }
+        }
+
+        // 隐藏加载指示器
+        function hideLoading() {
+            if (loadingIndicator) {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        // 显示错误信息
+        function showError(message, elementId) {
+            if (elementId) {
+                var errorElement = document.getElementById(elementId);
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.classList.remove('hidden');
+                }
+            } else {
+                UXManager.showOperationFeedback(message, 'error');
+            }
+        }
+
+        // 显示成功信息
+        function showSuccess(message) {
+            UXManager.showOperationFeedback(message, 'success');
+        }
+
+        // 清除所有错误信息
+        function clearErrors() {
+            var errorElements = document.querySelectorAll('.error-message');
+            errorElements.forEach(function(el) {
+                el.textContent = '';
+                el.classList.add('hidden');
+            });
+        }
     </script>
 </body>
 </html>
