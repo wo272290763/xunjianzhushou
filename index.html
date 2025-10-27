@@ -6,10 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>巡检助手 - 专业设备巡检管理工具</title>
     
+    <!-- 基础描述 -->
+    <meta name="description" content="高效管理设备巡检任务，实时记录设备状态，自动生成巡检报告，支持移动端操作">
+    <meta name="keywords" content="设备巡检,巡检管理,设备管理,巡检工具">
+    
     <!-- 标准OG标签 - 适配Facebook、LinkedIn等 -->
     <meta property="og:title" content="巡检助手 - 专业设备巡检管理工具" />
     <meta property="og:description" content="高效管理设备巡检任务，实时记录设备状态，自动生成巡检报告，支持移动端操作" />
-    <meta property="og:image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg?v=2" />
+    <meta property="og:image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg" />
+    <meta property="og:image:url" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg" />
+    <meta property="og:image:secure_url" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg" />
     <meta property="og:url" content="https://wo272290763.github.io/xunjianzhushou/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="巡检助手" />
@@ -18,16 +24,19 @@
     <!-- 图片尺寸声明（适配微信） -->
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
 
     <!-- 腾讯系专用标签（QQ/微信） -->
     <meta itemprop="name" content="巡检助手 - 专业设备巡检管理工具">
     <meta itemprop="description" content="高效管理设备巡检任务，实时记录设备状态，自动生成巡检报告，支持移动端操作">
-    <meta itemprop="image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg?v=2">
+    <meta itemprop="image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg">
 
     <!-- 微信专用补充标签 -->
     <meta property="wechat:title" content="巡检助手 - 专业设备巡检管理工具">
     <meta property="wechat:description" content="高效管理设备巡检任务，实时记录设备状态，自动生成巡检报告，支持移动端操作">
-    <meta property="wechat:image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg?v=2">
+    <meta property="wechat:image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg">
+    <meta property="wechat:page_type" content="article">
+    <meta property="wechat:site_name" content="巡检助手">
 
     <!-- 微博专用标签 -->
     <meta property="weibo:webpage" content="article">
@@ -47,6 +56,11 @@
     <meta name="twitter:description" content="便捷管理设备巡检任务，记录设备状态，生成巡检报告">
     <meta name="twitter:image" content="https://wo272290763.github.io/xunjianzhushou/images/og-image.jpg">
     <meta name="twitter:site" content="@yourtwitterhandle">
+    
+    <!-- 额外的微信兼容标签 -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 使用可靠的Font Awesome CDN -->
@@ -328,6 +342,16 @@
             /* 修复：设备卡片高度自适应，防止被拉伸 */
             .device-card {
                 @apply self-start;
+            }
+            
+            /* 新增：设备标题区域 - 用于区分点击区域 */
+            .device-header-info {
+                @apply flex-1 min-w-0 cursor-pointer;
+            }
+            
+            /* 新增：滑动检测相关样式 */
+            .device-card.touch-scrolling {
+                @apply transition-none;
             }
         }
     </style>
@@ -785,6 +809,14 @@
         let searchTerm = ''; // 搜索关键词
         let searchTimeout = null; // 搜索防抖定时器
         let renderTimeout = null; // 渲染防抖定时器
+        
+        // 滑动检测相关变量
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let isScrolling = false;
+        const SWIPE_THRESHOLD = 10; // 滑动阈值，超过这个值认为是滑动
 
         // DOM元素
         let devicesContainer, emptyState, addDeviceBtn, emptyAddBtn, addDeviceModal, modalContent;
@@ -1323,6 +1355,19 @@
                     });
                 });
                 
+                // 修复：添加触摸滑动检测
+                devicesContainer.addEventListener('touchstart', (e) => {
+                    this.handleTouchStart(e);
+                }, { passive: true });
+                
+                devicesContainer.addEventListener('touchmove', (e) => {
+                    this.handleTouchMove(e);
+                }, { passive: true });
+                
+                devicesContainer.addEventListener('touchend', (e) => {
+                    this.handleTouchEnd(e);
+                }, { passive: true });
+                
                 // 修复：添加滚动事件处理，防止在条件项上滑动时滚动整个列表
                 devicesContainer.addEventListener('touchmove', (e) => {
                     const conditionItem = e.target.closest('.condition-item');
@@ -1331,6 +1376,47 @@
                         e.stopPropagation();
                     }
                 }, { passive: false });
+            },
+            
+            // 触摸开始处理 - 新增滑动检测
+            handleTouchStart(e) {
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                isScrolling = false;
+                
+                // 标记当前触摸的设备卡片
+                const deviceCard = e.target.closest('.device-card-shadow');
+                if (deviceCard) {
+                    deviceCard.classList.add('touch-scrolling');
+                }
+            },
+            
+            // 触摸移动处理 - 检测是否在滑动
+            handleTouchMove(e) {
+                if (!touchStartX || !touchStartY) return;
+                
+                const touch = e.touches[0];
+                const deltaX = Math.abs(touch.clientX - touchStartX);
+                const deltaY = Math.abs(touch.clientY - touchStartY);
+                
+                // 如果移动距离超过阈值，认为是滑动
+                if (deltaX > SWIPE_THRESHOLD || deltaY > SWIPE_THRESHOLD) {
+                    isScrolling = true;
+                }
+            },
+            
+            // 触摸结束处理
+            handleTouchEnd(e) {
+                // 重置触摸状态
+                touchStartX = 0;
+                touchStartY = 0;
+                
+                // 移除触摸样式
+                const deviceCard = e.target.closest('.device-card-shadow');
+                if (deviceCard) {
+                    deviceCard.classList.remove('touch-scrolling');
+                }
             },
 
             // 处理设备容器点击 - 修复点击问题
@@ -1390,11 +1476,14 @@
                     return;
                 }
 
-                // 卡片点击（展开/折叠）
-                const deviceCard = target.closest('.device-card-shadow');
-                if (deviceCard && !conditionItem && !refreshBtn && !editBtn) {
-                    const deviceIndex = this.getDeviceIndex(deviceCard);
-                    this.toggleDeviceCard(deviceCard, deviceIndex);
+                // 卡片点击（展开/折叠）- 修复：只在点击设备标题信息区域且不是滑动时触发
+                const deviceHeaderInfo = target.closest('.device-header-info');
+                if (deviceHeaderInfo && !conditionItem && !refreshBtn && !editBtn && !isScrolling) {
+                    const deviceCard = deviceHeaderInfo.closest('.device-card-shadow');
+                    if (deviceCard) {
+                        const deviceIndex = this.getDeviceIndex(deviceCard);
+                        this.toggleDeviceCard(deviceCard, deviceIndex);
+                    }
                 }
             },
 
@@ -2109,7 +2198,7 @@
 
             const miniInspectionInfo = isNearInspection ? `<span class="text-xs text-red-500">下次检定: ${nextInspectionDate} <i class="fa-solid fa-triangle-exclamation mr-1"></i></span>` : '';
 
-            // 新的卡片结构
+            // 新的卡片结构 - 修复：添加device-header-info类到标题区域
             card.innerHTML = `
                 <!-- 蓝色进度遮罩层 - 只在折叠时显示 -->
                 <div class="mini-progress-overlay" style="--progress: ${status.progress}%"></div>
@@ -2117,7 +2206,7 @@
                 <div class="mini-card-content p-1">
                     <!-- 迷你卡片内容 - 始终显示 -->
                     <div class="flex justify-between items-start mb-0">
-                        <div class="flex-1 min-w-0">
+                        <div class="device-header-info">
                             <h3 class="text-base font-bold text-dark truncate">${device.name}</h3>
                             <p class="text-gray-500 text-xs device-code">${device.location}</p>
                         </div>
