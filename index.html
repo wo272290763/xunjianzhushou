@@ -665,6 +665,20 @@
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             查看错误日志
                         </button>
+                        <!-- 新增：定位偏离范围设置 -->
+                        <div class="bg-purple-50 rounded-lg p-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">定位偏离范围设置</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="number" id="location-deviation-range" min="1" max="1000" 
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                                    placeholder="输入偏离范围（米）">
+                                <span class="text-sm text-gray-600 whitespace-nowrap">米</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">设置坐标匹配的允许偏离范围</p>
+                            <button id="save-deviation-range-btn" class="w-full mt-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 btn-hover-effect touch-button">
+                                <i class="fa-solid fa-save mr-1"></i>保存设置
+                            </button>
+                        </div>
                         <button id="data-delete-all-btn" class="profile-card-btn bg-red-500 text-white touch-button">
                             <i class="fa-solid fa-trash"></i>
                             删除所有设备
@@ -1164,9 +1178,13 @@
         let touchEndX = 0;
         let touchEndY = 0;
         let isScrolling = false;
+        let isHorizontalSwipe = false; // 新增：标记是否为水平滑动
         let touchStartTime = 0;
-        const SWIPE_THRESHOLD = 30; // 增加滑动阈值，减少误触
+        const SWIPE_THRESHOLD = 30; // 水平滑动阈值
         const TAP_THRESHOLD = 200; // 点击时间阈值，超过这个时间认为是长按
+        const VERTICAL_SCROLL_THRESHOLD = 10; // 垂直滚动阈值
+        const CLICK_THRESHOLD = 5; // 点击移动阈值，小于这个值认为是点击
+        let lastSwipeTime = 0; // 记录最后一次滑动结束的时间
 
         // 二维码扫描相关变量
         let qrStream = null;
@@ -1179,6 +1197,9 @@
 
         // 错误日志
         let errorLogs = [];
+
+        // 新增：定位偏离范围变量（默认15米）
+        let locationDeviationRange = 15;
 
         // DOM元素
         let devicesContainer, emptyState, addDeviceBtn, emptyAddBtn, addDeviceModal, modalContent;
@@ -1215,6 +1236,9 @@
         // 新增：坐标相关DOM元素
         let deviceInstallLatitudeInput, deviceInstallLongitudeInput, getCurrentLocationBtn;
         let editDeviceInstallLatitudeInput, editDeviceInstallLongitudeInput, editGetCurrentLocationBtn;
+        
+        // 新增：定位偏离范围相关DOM元素
+        let locationDeviationRangeInput, saveDeviationRangeBtn;
 
         // ========== 性能优化改进 ==========
         // 优化渲染性能
@@ -1384,10 +1408,11 @@
                 let lastInspectionTime = null;
 
                 device.conditions.forEach(condition => {
-                    // 检查当天是否有巡检记录
+                    // 检查当天是否有巡检记录 - 修复：同时检查当前状态和历史记录
                     const isToday = condition.inspectionTime && condition.inspectionTime.startsWith(today);
+                    const hasHistoryToday = condition.history && condition.history.some(h => h.date === today);
                     
-                    if (isToday) {
+                    if (isToday || hasHistoryToday) {
                         if (condition.status === 'normal') normalCount++;
                         if (condition.status === 'abnormal') abnormalCount++;
                     }
@@ -1608,6 +1633,9 @@
                     
                     // 加载错误日志
                     ErrorLogger.loadErrorLogs();
+                    
+                    // 加载定位偏离范围设置
+                    this.loadLocationDeviationRange();
                 } catch (error) {
                     console.error('加载设备数据失败:', error);
                     ErrorLogger.logError('加载设备数据失败', error);
@@ -1643,6 +1671,37 @@
                 } catch (error) {
                     console.error('保存预设项目失败:', error);
                     ErrorLogger.logError('保存预设项目失败', error);
+                    throw error;
+                }
+            },
+            
+            // 加载定位偏离范围设置
+            loadLocationDeviationRange() {
+                try {
+                    const savedRange = localStorage.getItem('location_deviation_range');
+                    if (savedRange) {
+                        locationDeviationRange = parseInt(savedRange);
+                        console.log(`从本地存储加载了定位偏离范围: ${locationDeviationRange}米`);
+                    } else {
+                        // 使用默认值15米
+                        locationDeviationRange = 15;
+                        this.saveLocationDeviationRange();
+                    }
+                } catch (error) {
+                    console.error('加载定位偏离范围失败:', error);
+                    ErrorLogger.logError('加载定位偏离范围失败', error);
+                    locationDeviationRange = 15;
+                }
+            },
+            
+            // 保存定位偏离范围设置
+            saveLocationDeviationRange() {
+                try {
+                    localStorage.setItem('location_deviation_range', locationDeviationRange.toString());
+                    console.log(`已保存定位偏离范围: ${locationDeviationRange}米到本地存储`);
+                } catch (error) {
+                    console.error('保存定位偏离范围失败:', error);
+                    ErrorLogger.logError('保存定位偏离范围失败', error);
                     throw error;
                 }
             },
@@ -1863,6 +1922,7 @@
                 this.setupImageEvents();
                 this.setupCoordinateEvents();
                 this.setupErrorLogEvents();
+                this.setupDeviationRangeEvents();
             },
 
             // 设置全局事件
@@ -1902,105 +1962,101 @@
                 devicesContainer.addEventListener('click', throttledClickHandler);
                 devicesContainer.addEventListener('touchend', throttledClickHandler);
 
-                // 设备容器滑动事件 - 修改：将长按改为左右滑动触发异常状态
+                // 设备容器滑动事件 - 修改：改进滑动检测逻辑
                 devicesContainer.addEventListener('touchstart', (e) => {
-                    this.handleSwipeStart(e);
+                    this.handleTouchStart(e);
                 }, { passive: true });
                 
                 devicesContainer.addEventListener('touchmove', (e) => {
-                    this.handleSwipeMove(e);
+                    this.handleTouchMove(e);
                 }, { passive: true });
                 
                 devicesContainer.addEventListener('touchend', (e) => {
-                    this.handleSwipeEnd(e);
+                    this.handleTouchEnd(e);
                 }, { passive: true });
             },
             
-            // 滑动开始处理 - 新增滑动检测
-            handleSwipeStart(e) {
+            // 触摸开始处理 - 修复滑动检测
+            handleTouchStart(e) {
                 const conditionItem = e.target.closest('.condition-item');
-                if (!conditionItem) return;
+                const deviceCard = e.target.closest('.device-card-shadow');
+                
+                if (!deviceCard) return;
                 
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
                 touchStartTime = Date.now();
                 isScrolling = false;
+                isHorizontalSwipe = false;
                 
-                // 记录当前滑动的条件项
-                conditionItem.dataset.swipeStartX = touchStartX;
-                conditionItem.dataset.swipeStartY = touchStartY;
+                // 记录当前触摸的元素
+                if (conditionItem) {
+                    conditionItem.dataset.touchStartX = touchStartX;
+                    conditionItem.dataset.touchStartY = touchStartY;
+                }
             },
             
-            // 滑动移动处理 - 检测是否在滑动
-            handleSwipeMove(e) {
-                const conditionItem = e.target.closest('.condition-item');
-                if (!conditionItem || !touchStartX || !touchStartY) return;
+            // 触摸移动处理 - 检测是否在滑动
+            handleTouchMove(e) {
+                if (!touchStartX || !touchStartY) return;
                 
                 const touch = e.touches[0];
-                const deltaX = touch.clientX - touchStartX;
+                const deltaX = Math.abs(touch.clientX - touchStartX);
                 const deltaY = Math.abs(touch.clientY - touchStartY);
                 
                 // 如果垂直移动距离超过阈值，认为是垂直滚动
-                if (deltaY > SWIPE_THRESHOLD) {
+                if (deltaY > VERTICAL_SCROLL_THRESHOLD) {
                     isScrolling = true;
-                    return;
+                    lastSwipeTime = Date.now();
                 }
                 
-                // 水平滑动超过阈值，显示滑动效果
-                if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-                    conditionItem.classList.remove('swipe-left-active', 'swipe-right-active');
-                    if (deltaX > 0) {
-                        conditionItem.classList.add('swipe-right-active');
-                    } else {
-                        conditionItem.classList.add('swipe-left-active');
-                    }
+                // 如果水平移动距离超过阈值，认为是水平滑动
+                if (deltaX > SWIPE_THRESHOLD && deltaX > deltaY) {
+                    isScrolling = true;
+                    isHorizontalSwipe = true;
+                    lastSwipeTime = Date.now();
                 }
             },
             
-            // 滑动结束处理
-            handleSwipeEnd(e) {
-                const conditionItem = e.target.closest('.condition-item');
-                if (!conditionItem || !touchStartX || !touchStartY) return;
-                
+            // 触摸结束处理 - 修复：正确重置状态并处理水平滑动
+            handleTouchEnd(e) {
                 const touch = e.changedTouches[0];
-                const deltaX = touch.clientX - touchStartX;
-                const deltaY = Math.abs(touch.clientY - touchStartY);
+                touchEndX = touch.clientX;
+                touchEndY = touch.clientY;
+                
+                const deltaX = Math.abs(touchEndX - touchStartX);
+                const deltaY = Math.abs(touchEndY - touchStartY);
                 const touchDuration = Date.now() - touchStartTime;
                 
-                // 如果是垂直滚动，不触发滑动操作
-                if (isScrolling || deltaY > SWIPE_THRESHOLD) {
-                    this.resetSwipeState(conditionItem);
-                    return;
-                }
-                
-                // 检查是否满足滑动条件
-                if (Math.abs(deltaX) > SWIPE_THRESHOLD && touchDuration < 500) {
-                    // 滑动触发异常状态
-                    const deviceIndex = this.getDeviceIndex(conditionItem);
-                    const conditionIndex = parseInt(conditionItem.dataset.index);
+                // 检查是否为水平滑动
+                if (isHorizontalSwipe && deltaX > SWIPE_THRESHOLD && deltaX > deltaY) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    if (!isNaN(deviceIndex) && !isNaN(conditionIndex)) {
-                        DataManager.updateCondition(deviceIndex, conditionIndex, 'abnormal');
-                        currentDeviceId = deviceIndex;
-                        currentConditionIndex = conditionIndex;
+                    const conditionItem = e.target.closest('.condition-item');
+                    if (conditionItem) {
+                        const deviceIndex = this.getDeviceIndex(conditionItem);
+                        const conditionIndex = parseInt(conditionItem.dataset.index);
                         
-                        this.refreshUI();
-                        openRemarkModal(devices[deviceIndex].conditions[conditionIndex].name);
+                        if (!isNaN(deviceIndex) && !isNaN(conditionIndex)) {
+                            // 设置状态为异常并打开备注模态框
+                            DataManager.updateCondition(deviceIndex, conditionIndex, 'abnormal');
+                            currentDeviceId = deviceIndex;
+                            currentConditionIndex = conditionIndex;
+                            openRemarkModal(devices[deviceIndex].conditions[conditionIndex].name);
+                            this.refreshUI();
+                        }
                     }
                 }
                 
-                this.resetSwipeState(conditionItem);
-            },
-            
-            // 重置滑动状态
-            resetSwipeState(conditionItem) {
-                if (conditionItem) {
-                    conditionItem.classList.remove('swipe-left-active', 'swipe-right-active');
-                }
+                // 重置触摸状态
                 touchStartX = 0;
                 touchStartY = 0;
+                touchEndX = 0;
+                touchEndY = 0;
                 isScrolling = false;
+                isHorizontalSwipe = false;
             },
 
             // 处理设备容器点击 - 修复点击问题
@@ -2008,7 +2064,7 @@
                 const target = e.target;
                 
                 // 修复：如果是滑动，不触发任何点击事件
-                if (isScrolling) {
+                if (isScrolling || Date.now() - lastSwipeTime < 100) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
@@ -2031,8 +2087,11 @@
                                                 devices[deviceIndex].conditions[conditionIndex].inspectionTime.startsWith(today);
                         
                         let newStatus;
-                        if ((currentStatus === 'normal' || currentStatus === 'abnormal') && isTodayInspection) {
-                            // 如果已经是巡检状态且是今天的记录，则重置为待巡检
+                        if (currentStatus === 'normal') {
+                            // 如果已经是正常状态，则重置为待巡检
+                            newStatus = 'pending';
+                        } else if (currentStatus === 'abnormal') {
+                            // 如果是异常状态，则重置为待巡检
                             newStatus = 'pending';
                         } else {
                             // 否则设置为正常
@@ -2214,6 +2273,8 @@
                     ).then(confirmed => {
                         if (confirmed) {
                             switchPage('data-management-page');
+                            // 加载当前偏离范围设置到输入框
+                            locationDeviationRangeInput.value = locationDeviationRange;
                         }
                     });
                 });
@@ -2266,6 +2327,11 @@
                 closeErrorLogModal.addEventListener('click', closeErrorLogModalFunc);
                 closeErrorLog.addEventListener('click', closeErrorLogModalFunc);
                 clearErrorLogBtn.addEventListener('click', clearErrorLog);
+            },
+            
+            // 设置定位偏离范围事件
+            setupDeviationRangeEvents() {
+                saveDeviationRangeBtn.addEventListener('click', saveLocationDeviationRange);
             }
         };
 
@@ -2498,6 +2564,10 @@
             editDeviceInstallLatitudeInput = document.getElementById('edit-device-install-latitude');
             editDeviceInstallLongitudeInput = document.getElementById('edit-device-install-longitude');
             editGetCurrentLocationBtn = document.getElementById('edit-get-current-location-btn');
+            
+            // 新增：定位偏离范围相关DOM元素
+            locationDeviationRangeInput = document.getElementById('location-deviation-range');
+            saveDeviationRangeBtn = document.getElementById('save-deviation-range-btn');
 
             // 初始化管理器
             EventManager.init();
@@ -2721,7 +2791,7 @@
             const nextInspectionDate = DateUtils.getNextInspectionDate(device.lastInspectionDate, device.inspectionCycle);
             const isNearInspection = DateUtils.isWithinDays(nextInspectionDate, 10);
 
-            // 计算坐标匹配状态
+            // 计算坐标匹配状态 - 修复：使用可调节的偏离范围
             let coordinatesMatchStatus = 'normal';
             let distance = null;
             
@@ -2741,7 +2811,8 @@
                         currentLat, currentLng
                     );
                     
-                    if (distance <= 15) {
+                    // 使用可调节的偏离范围
+                    if (distance <= locationDeviationRange) {
                         coordinatesMatchStatus = 'match';
                     } else {
                         coordinatesMatchStatus = 'mismatch';
@@ -3097,7 +3168,7 @@
                 device.conditions.forEach((condition, conditionIndex) => {
                     // 只确认当天的记录，且只将待巡检状态改为正常
                     const isTodayInspection = condition.inspectionTime && condition.inspectionTime.startsWith(today);
-                    if (!isTodayInspection && condition.status === 'pending') {
+                    if (condition.status === 'pending') {
                         DataManager.updateCondition(deviceIndex, conditionIndex, 'normal', '');
                         confirmCount++;
                     }
@@ -3539,7 +3610,7 @@
                             var display = StatusManager.getConditionDisplay(condition, date);
                             
                             return `
-                                <div class="condition-item p-1 ${display.className} border ${display.borderColor} rounded text-xs ${display.textColor}">
+                                <div class="condition-item p-1 ${display.className} border ${display.borderColor} rounded text-xs ${display.textColor}" style="font-size: 0.7rem;">
                                     <div class="flex items-center">
                                         <div class="status-indicator ${display.statusClass} mr-1"></div>
                                         <span>${condition.name}</span>
@@ -3886,6 +3957,7 @@
                     localStorage.removeItem('preset_conditions');
                     localStorage.removeItem('lastResetDate');
                     localStorage.removeItem('error_logs');
+                    localStorage.removeItem('location_deviation_range');
                     
                     // 重置所有变量
                     devices = [];
@@ -3893,9 +3965,11 @@
                     expandedDates = {};
                     expandedCardIndex = -1;
                     searchTerm = '';
+                    locationDeviationRange = 15;
                     
                     // 保存默认预设项目
                     DataManager.savePresetConditions();
+                    DataManager.saveLocationDeviationRange();
                     
                     // 刷新UI
                     EventManager.refreshUI();
@@ -4486,6 +4560,29 @@
                     UXManager.showOperationFeedback('错误日志已清空', 'success');
                 }
             });
+        }
+
+        // ========== 定位偏离范围设置功能 ==========
+        function saveLocationDeviationRange() {
+            const newRange = parseInt(locationDeviationRangeInput.value);
+            
+            if (isNaN(newRange) || newRange < 1 || newRange > 1000) {
+                alert('请输入1-1000之间的有效数值');
+                return;
+            }
+            
+            locationDeviationRange = newRange;
+            
+            try {
+                DataManager.saveLocationDeviationRange();
+                UXManager.showOperationFeedback(`定位偏离范围已设置为${newRange}米`, 'success');
+                // 刷新设备列表以更新坐标匹配状态
+                EventManager.refreshUI();
+            } catch (error) {
+                console.error('保存定位偏离范围失败:', error);
+                ErrorLogger.logError('保存定位偏离范围失败', error);
+                alert('保存失败，请重试');
+            }
         }
 
         // ========== 工具函数 ==========
