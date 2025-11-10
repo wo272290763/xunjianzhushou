@@ -542,6 +542,22 @@
             .condition-item.swipe-right-active {
                 @apply bg-red-100 border-red-300 transform translate-x-2;
             }
+            
+            /* 新增：现场打卡遮罩样式 */
+            .condition-mask {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(255, 255, 255, 0.7);
+                z-index: 10;
+                pointer-events: none;
+            }
+            
+            .conditions-container-wrapper {
+                position: relative;
+            }
         }
     </style>
 </head>
@@ -665,7 +681,19 @@
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             查看错误日志
                         </button>
-                        <!-- 新增：定位偏离范围设置 -->
+                        <!-- 新增：现场打卡功能开关 -->
+                        <div class="bg-indigo-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700">现场打卡功能</label>
+                                <div class="relative inline-block w-12 h-6">
+                                    <input type="checkbox" id="site-checkin-toggle" class="sr-only">
+                                    <div class="site-checkin-slider w-12 h-6 bg-gray-200 rounded-full cursor-pointer transition-colors duration-300"></div>
+                                    <div class="site-checkin-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300"></div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500">开启后需要定位验证才能操作巡检项目</p>
+                        </div>
+                        <!-- 定位偏离范围设置 -->
                         <div class="bg-purple-50 rounded-lg p-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">定位偏离范围设置</label>
                             <div class="flex items-center space-x-2">
@@ -1201,6 +1229,10 @@
         // 新增：定位偏离范围变量（默认15米）
         let locationDeviationRange = 15;
 
+        // 新增：现场打卡功能相关变量
+        let siteCheckInEnabled = false;
+        let deviceLocationVerified = {};
+
         // DOM元素
         let devicesContainer, emptyState, addDeviceBtn, emptyAddBtn, addDeviceModal, modalContent;
         let closeModal, addDeviceForm, conditionsContainer, addConditionBtn, cancelAddDevice;
@@ -1239,6 +1271,9 @@
         
         // 新增：定位偏离范围相关DOM元素
         let locationDeviationRangeInput, saveDeviationRangeBtn;
+        
+        // 新增：现场打卡功能相关DOM元素
+        let siteCheckinToggle;
 
         // ========== 性能优化改进 ==========
         // 优化渲染性能
@@ -1408,16 +1443,13 @@
                 let lastInspectionTime = null;
 
                 device.conditions.forEach(condition => {
-                    // 检查当天是否有巡检记录 - 修复：同时检查当前状态和历史记录
-                    const isToday = condition.inspectionTime && condition.inspectionTime.startsWith(today);
-                    const hasHistoryToday = condition.history && condition.history.some(h => h.date === today);
-                    
-                    if (isToday || hasHistoryToday) {
-                        if (condition.status === 'normal') normalCount++;
-                        if (condition.status === 'abnormal') abnormalCount++;
-                    }
+                    // 使用getConditionDisplay来获取当天条件的显示状态
+                    const display = this.getConditionDisplay(condition, today);
 
-                    // 更新最后巡检时间 - 修复时间显示问题
+                    if (display.status === 'normal') normalCount++;
+                    if (display.status === 'abnormal') abnormalCount++;
+
+                    // 原有的时间逻辑，我们暂时不变
                     if (condition.inspectionTime) {
                         const conditionTime = new Date(condition.inspectionTime);
                         if (!lastInspectionTime || conditionTime > lastInspectionTime) {
@@ -1636,6 +1668,12 @@
                     
                     // 加载定位偏离范围设置
                     this.loadLocationDeviationRange();
+                    
+                    // 加载现场打卡功能设置
+                    this.loadSiteCheckInSetting();
+                    
+                    // 加载设备定位验证状态
+                    this.loadDeviceLocationVerified();
                 } catch (error) {
                     console.error('加载设备数据失败:', error);
                     ErrorLogger.logError('加载设备数据失败', error);
@@ -1702,6 +1740,67 @@
                 } catch (error) {
                     console.error('保存定位偏离范围失败:', error);
                     ErrorLogger.logError('保存定位偏离范围失败', error);
+                    throw error;
+                }
+            },
+            
+            // 加载现场打卡功能设置
+            loadSiteCheckInSetting() {
+                try {
+                    const savedSetting = localStorage.getItem('site_checkin_enabled');
+                    if (savedSetting !== null) {
+                        siteCheckInEnabled = savedSetting === 'true';
+                        console.log(`从本地存储加载了现场打卡功能设置: ${siteCheckInEnabled}`);
+                    } else {
+                        // 默认关闭
+                        siteCheckInEnabled = false;
+                        this.saveSiteCheckInSetting();
+                    }
+                } catch (error) {
+                    console.error('加载现场打卡功能设置失败:', error);
+                    ErrorLogger.logError('加载现场打卡功能设置失败', error);
+                    siteCheckInEnabled = false;
+                }
+            },
+            
+            // 保存现场打卡功能设置
+            saveSiteCheckInSetting() {
+                try {
+                    localStorage.setItem('site_checkin_enabled', siteCheckInEnabled.toString());
+                    console.log(`已保存现场打卡功能设置: ${siteCheckInEnabled}到本地存储`);
+                } catch (error) {
+                    console.error('保存现场打卡功能设置失败:', error);
+                    ErrorLogger.logError('保存现场打卡功能设置失败', error);
+                    throw error;
+                }
+            },
+            
+            // 加载设备定位验证状态
+            loadDeviceLocationVerified() {
+                try {
+                    const savedVerified = localStorage.getItem('device_location_verified');
+                    if (savedVerified) {
+                        deviceLocationVerified = JSON.parse(savedVerified);
+                        console.log(`从本地存储加载了设备定位验证状态: ${Object.keys(deviceLocationVerified).length}个设备`);
+                    } else {
+                        deviceLocationVerified = {};
+                        this.saveDeviceLocationVerified();
+                    }
+                } catch (error) {
+                    console.error('加载设备定位验证状态失败:', error);
+                    ErrorLogger.logError('加载设备定位验证状态失败', error);
+                    deviceLocationVerified = {};
+                }
+            },
+            
+            // 保存设备定位验证状态
+            saveDeviceLocationVerified() {
+                try {
+                    localStorage.setItem('device_location_verified', JSON.stringify(deviceLocationVerified));
+                    console.log(`已保存设备定位验证状态到本地存储`);
+                } catch (error) {
+                    console.error('保存设备定位验证状态失败:', error);
+                    ErrorLogger.logError('保存设备定位验证状态失败', error);
                     throw error;
                 }
             },
@@ -1779,6 +1878,12 @@
 
             // 统一更新条件状态 - 修复点击问题
             updateCondition(deviceIndex, conditionIndex, status, remark = '') {
+                // 检查现场打卡功能是否开启且设备未通过定位验证
+                if (siteCheckInEnabled && !deviceLocationVerified[deviceIndex]) {
+                    console.log('现场打卡功能已开启，设备未通过定位验证，无法操作巡检项目');
+                    return false;
+                }
+                
                 const condition = devices[deviceIndex].conditions[conditionIndex];
                 const oldStatus = condition.status;
                 const today = getCurrentDate();
@@ -1908,6 +2013,27 @@
                 };
                 this.saveDevices();
                 return true;
+            },
+            
+            // 更新设备定位验证状态
+            updateDeviceLocationVerified(deviceIndex, verified) {
+                deviceLocationVerified[deviceIndex] = verified;
+                this.saveDeviceLocationVerified();
+                return true;
+            },
+            
+            // 切换现场打卡功能
+            toggleSiteCheckIn(enabled) {
+                siteCheckInEnabled = enabled;
+                this.saveSiteCheckInSetting();
+                
+                // 如果关闭现场打卡功能，清除所有设备的定位验证状态
+                if (!enabled) {
+                    deviceLocationVerified = {};
+                    this.saveDeviceLocationVerified();
+                }
+                
+                return true;
             }
         };
 
@@ -1923,6 +2049,7 @@
                 this.setupCoordinateEvents();
                 this.setupErrorLogEvents();
                 this.setupDeviationRangeEvents();
+                this.setupSiteCheckInEvents();
             },
 
             // 设置全局事件
@@ -2040,6 +2167,12 @@
                         const conditionIndex = parseInt(conditionItem.dataset.index);
                         
                         if (!isNaN(deviceIndex) && !isNaN(conditionIndex)) {
+                            // 检查现场打卡功能是否开启且设备未通过定位验证
+                            if (siteCheckInEnabled && !deviceLocationVerified[deviceIndex]) {
+                                console.log('现场打卡功能已开启，设备未通过定位验证，无法操作巡检项目');
+                                return;
+                            }
+                            
                             // 设置状态为异常并打开备注模态框
                             DataManager.updateCondition(deviceIndex, conditionIndex, 'abnormal');
                             currentDeviceId = deviceIndex;
@@ -2080,6 +2213,12 @@
                     const deviceIndex = this.getDeviceIndex(conditionItem);
                     const conditionIndex = parseInt(conditionItem.dataset.index);
                     if (!isNaN(deviceIndex) && !isNaN(conditionIndex)) {
+                        // 检查现场打卡功能是否开启且设备未通过定位验证
+                        if (siteCheckInEnabled && !deviceLocationVerified[deviceIndex]) {
+                            console.log('现场打卡功能已开启，设备未通过定位验证，无法操作巡检项目');
+                            return;
+                        }
+                        
                         // 修复：点击时切换状态
                         const currentStatus = devices[deviceIndex].conditions[conditionIndex].status;
                         const today = getCurrentDate();
@@ -2275,6 +2414,8 @@
                             switchPage('data-management-page');
                             // 加载当前偏离范围设置到输入框
                             locationDeviationRangeInput.value = locationDeviationRange;
+                            // 更新现场打卡开关状态
+                            updateSiteCheckinToggleUI();
                         }
                     });
                 });
@@ -2332,7 +2473,29 @@
             // 设置定位偏离范围事件
             setupDeviationRangeEvents() {
                 saveDeviationRangeBtn.addEventListener('click', saveLocationDeviationRange);
-            }
+            },
+            
+// 设置现场打卡功能事件
+setupSiteCheckInEvents() {
+    if (siteCheckinToggle) {
+        // 更新开关UI状态
+        updateSiteCheckinToggleUI();
+        
+        // 添加点击事件监听
+        siteCheckinToggle.addEventListener('change', handleSiteCheckinToggle);
+        
+        // 添加自定义滑块的点击事件，以便点击整个滑块区域都能触发开关
+        const sliderContainer = siteCheckinToggle.parentElement;
+        if (sliderContainer) {
+            sliderContainer.addEventListener('click', function(e) {
+                // 阻止事件冒泡，避免重复触发
+                e.stopPropagation();
+                siteCheckinToggle.checked = !siteCheckinToggle.checked;
+                handleSiteCheckinToggle();
+            });
+        }
+    }
+},
         };
 
         // ========== 用户体验管理器 ==========
@@ -2568,6 +2731,9 @@
             // 新增：定位偏离范围相关DOM元素
             locationDeviationRangeInput = document.getElementById('location-deviation-range');
             saveDeviationRangeBtn = document.getElementById('save-deviation-range-btn');
+            
+            // 新增：现场打卡功能相关DOM元素
+            siteCheckinToggle = document.getElementById('site-checkin-toggle');
 
             // 初始化管理器
             EventManager.init();
@@ -2718,10 +2884,15 @@
                         
                         // 重置当前状态为待巡检 - 但保留当天的记录
                         // 只有当天的记录才重置，避免影响已完成的巡检
+                        // 修复：确保正确重置状态和巡检时间
                         if (condition.inspectionTime && condition.inspectionTime.startsWith(today)) {
                             condition.status = 'pending';
                             condition.remark = '';
                             condition.inspectionTime = '';
+                        } else {
+                            // 如果没有当天的巡检记录，也要确保状态是待巡检
+                            condition.status = 'pending';
+                            condition.remark = '';
                         }
                     });
                 });
@@ -2951,27 +3122,31 @@
                             </div>
                         ` : ''}
                         
-                        <div class="space-y-1 conditions-container">
-                            ${device.conditions.map(function(condition, condIndex) {
-                                const display = StatusManager.getConditionDisplay(condition);
-                                
-                                return `
-                                <div class="condition-item p-1.5 ${display.className} border ${display.borderColor}" 
-                                    data-index="${condIndex}">
-                                    <div class="flex justify-between items-center">
-                                        <div class="flex items-center">
-                                            <div class="status-indicator ${display.statusClass}"></div>
-                                            <span class="text-xs ${display.textColor} ${display.status === 'abnormal' ? 'font-medium' : ''}">${condition.name}</span>
+                        <!-- 修改：为巡检项目容器添加遮罩包装 -->
+                        <div class="conditions-container-wrapper">
+                            <div class="space-y-1 conditions-container">
+                                ${device.conditions.map(function(condition, condIndex) {
+                                    const display = StatusManager.getConditionDisplay(condition);
+                                    
+                                    return `
+                                    <div class="condition-item p-1.5 ${display.className} border ${display.borderColor}" 
+                                        data-index="${condIndex}">
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center">
+                                                <div class="status-indicator ${display.statusClass}"></div>
+                                                <span class="text-xs ${display.textColor} ${display.status === 'abnormal' ? 'font-medium' : ''}">${condition.name}</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                ${display.status === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
+                                                ${display.timeDisplay ? `<span class="text-xs text-gray-500">${display.timeDisplay}</span>` : ''}
+                                            </div>
                                         </div>
-                                        <div class="flex items-center">
-                                            ${display.status === 'abnormal' ? `<span class="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full mr-1">异常</span>` : ''}
-                                            ${display.timeDisplay ? `<span class="text-xs text-gray-500">${display.timeDisplay}</span>` : ''}
-                                        </div>
+                                        ${display.status === 'abnormal' ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
                                     </div>
-                                    ${display.status === 'abnormal' ? `<p class="text-xs text-red-600 mt-0.5 line-clamp-1"><i class="fa-solid fa-comment mr-0.5"></i>${condition.remark}</p>` : ''}
-                                </div>
-                                `;
-                            }).join('')}
+                                    `;
+                                }).join('')}
+                            </div>
+                            ${siteCheckInEnabled && !deviceLocationVerified[index] ? '<div class="condition-mask"></div>' : ''}
                         </div>
                     </div>
                 </div>
@@ -3958,6 +4133,8 @@
                     localStorage.removeItem('lastResetDate');
                     localStorage.removeItem('error_logs');
                     localStorage.removeItem('location_deviation_range');
+                    localStorage.removeItem('site_checkin_enabled');
+                    localStorage.removeItem('device_location_verified');
                     
                     // 重置所有变量
                     devices = [];
@@ -3966,10 +4143,14 @@
                     expandedCardIndex = -1;
                     searchTerm = '';
                     locationDeviationRange = 15;
+                    siteCheckInEnabled = false;
+                    deviceLocationVerified = {};
                     
                     // 保存默认预设项目
                     DataManager.savePresetConditions();
                     DataManager.saveLocationDeviationRange();
+                    DataManager.saveSiteCheckInSetting();
+                    DataManager.saveDeviceLocationVerified();
                     
                     // 刷新UI
                     EventManager.refreshUI();
@@ -4036,7 +4217,7 @@
                 });
             });
             
-            presetConditionsList.querySelectorAll('.delete-preset-condition').forEach(btn => {
+            presetConditionsList.querySelectorAll('.delete-presetCondition').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const index = parseInt(this.dataset.index);
                     deletePresetCondition(index);
@@ -4476,12 +4657,46 @@
                             timestamp: new Date().toISOString()
                         });
                         
+                        // 检查现场打卡功能是否开启，如果开启则进行坐标匹配验证
+                        if (siteCheckInEnabled) {
+                            const device = devices[deviceIndex];
+                            if (device.installCoordinates && device.installCoordinates.latitude && device.installCoordinates.longitude) {
+                                const installLat = parseFloat(device.installCoordinates.latitude);
+                                const installLng = parseFloat(device.installCoordinates.longitude);
+                                const currentLat = position.coords.latitude;
+                                const currentLng = position.coords.longitude;
+
+                                if (CoordinateUtils.isValidCoordinate(installLat, installLng) && 
+                                    CoordinateUtils.isValidCoordinate(currentLat, currentLng)) {
+                                    const distance = CoordinateUtils.calculateDistance(installLat, installLng, currentLat, currentLng);
+                                    // 使用当前设置的偏离范围
+                                    const isVerified = distance <= locationDeviationRange;
+                                    DataManager.updateDeviceLocationVerified(deviceIndex, isVerified);
+                                    
+                                    if (isVerified) {
+                                        UXManager.showOperationFeedback('定位验证成功，巡检项目已解锁', 'success');
+                                    } else {
+                                        UXManager.showOperationFeedback('定位验证失败，不在允许范围内', 'error');
+                                    }
+                                } else {
+                                    DataManager.updateDeviceLocationVerified(deviceIndex, false);
+                                    UXManager.showOperationFeedback('坐标格式无效，无法验证', 'error');
+                                }
+                            } else {
+                                // 如果没有安装坐标，则无法验证，视为不通过
+                                DataManager.updateDeviceLocationVerified(deviceIndex, false);
+                                UXManager.showOperationFeedback('设备未设置安装坐标，无法验证', 'error');
+                            }
+                        }
+                        
                         // 刷新UI以显示新的坐标
                         EventManager.refreshUI();
                     }
                     
                     UXManager.setLoadingState(false);
-                    UXManager.showOperationFeedback('位置获取成功', 'success');
+                    if (deviceIndex === -1) {
+                        UXManager.showOperationFeedback('位置获取成功', 'success');
+                    }
                 },
                 function(error) {
                     console.error('获取位置失败:', error);
@@ -4584,6 +4799,44 @@
                 alert('保存失败，请重试');
             }
         }
+
+// ========== 现场打卡功能 ==========
+function handleSiteCheckinToggle() {
+    const enabled = siteCheckinToggle.checked;
+    DataManager.toggleSiteCheckIn(enabled);
+    
+    // 更新开关UI
+    updateSiteCheckinToggleUI();
+    
+    if (enabled) {
+        UXManager.showOperationFeedback('现场打卡功能已开启', 'success');
+    } else {
+        UXManager.showOperationFeedback('现场打卡功能已关闭', 'success');
+    }
+    
+    // 刷新设备列表以更新遮罩状态
+    EventManager.refreshUI();
+}
+
+function updateSiteCheckinToggleUI() {
+    if (!siteCheckinToggle) return;
+    
+    siteCheckinToggle.checked = siteCheckInEnabled;
+    
+    // 更新开关样式
+    const slider = document.querySelector('.site-checkin-slider');
+    const dot = document.querySelector('.site-checkin-dot');
+    
+    if (slider && dot) {
+        if (siteCheckInEnabled) {
+            slider.style.backgroundColor = '#3B82F6'; // 蓝色
+            dot.style.transform = 'translateX(24px)';
+        } else {
+            slider.style.backgroundColor = '#9CA3AF'; // 灰色
+            dot.style.transform = 'translateX(0)';
+        }
+    }
+}
 
         // ========== 工具函数 ==========
 
