@@ -781,12 +781,12 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">安装坐标</label>
                             <div class="flex space-x-2">
-                                <input type="text" id="device-install-latitude"
-                                    class="w-2/5 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                                    placeholder="纬度">
                                 <input type="text" id="device-install-longitude"
                                     class="w-2/5 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                     placeholder="经度">
+                                <input type="text" id="device-install-latitude"
+                                    class="w-2/5 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                                    placeholder="纬度">
                                 <button type="button" id="get-current-location-btn" class="w-1/5 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 btn-hover-effect touch-button">
                                     <i class="fa-solid fa-location-dot"></i>
                                 </button>
@@ -948,12 +948,12 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">安装坐标</label>
                             <div class="flex space-x-2">
-                                <input type="text" id="edit-device-install-latitude"
-                                    class="w-2/5 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                                    placeholder="纬度">
                                 <input type="text" id="edit-device-install-longitude"
                                     class="w-2/5 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                                     placeholder="经度">
+                                <input type="text" id="edit-device-install-latitude"
+                                    class="w-2/5 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                                    placeholder="纬度">
                                 <button type="button" id="edit-get-current-location-btn" class="w-1/5 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 btn-hover-effect touch-button">
                                     <i class="fa-solid fa-location-dot"></i>
                                 </button>
@@ -1815,8 +1815,8 @@
                         category: device.category || '未分类',
                         location: device.location || '未知位置',
                         installCoordinates: device.installCoordinates || { // 新增安装坐标字段
-                            latitude: '',
-                            longitude: ''
+                            longitude: '',
+                            latitude: ''
                         },
                         model: device.model || '',
                         manufacturer: device.manufacturer || '',
@@ -2006,10 +2006,10 @@
             },
             
             // 更新设备安装坐标
-            updateDeviceInstallCoordinates(deviceIndex, latitude, longitude) {
+            updateDeviceInstallCoordinates(deviceIndex, longitude, latitude) {
                 devices[deviceIndex].installCoordinates = {
-                    latitude: latitude,
-                    longitude: longitude
+                    longitude: longitude,
+                    latitude: latitude
                 };
                 this.saveDevices();
                 return true;
@@ -2967,12 +2967,12 @@ setupSiteCheckInEvents() {
             let distance = null;
             
             if (device.locationData && device.installCoordinates && 
-                device.installCoordinates.latitude && device.installCoordinates.longitude) {
+                device.installCoordinates.longitude && device.installCoordinates.latitude) {
                 
-                const installLat = parseFloat(device.installCoordinates.latitude);
                 const installLng = parseFloat(device.installCoordinates.longitude);
-                const currentLat = device.locationData.latitude;
+                const installLat = parseFloat(device.installCoordinates.latitude);
                 const currentLng = device.locationData.longitude;
+                const currentLat = device.locationData.latitude;
                 
                 if (CoordinateUtils.isValidCoordinate(installLat, installLng) && 
                     CoordinateUtils.isValidCoordinate(currentLat, currentLng)) {
@@ -3105,7 +3105,7 @@ setupSiteCheckInEvents() {
                             
                             <!-- 安装坐标数据 -->
                             <div class="coordinates-display">
-                                ${device.installCoordinates && device.installCoordinates.latitude && device.installCoordinates.longitude ? 
+                                ${device.installCoordinates && device.installCoordinates.longitude && device.installCoordinates.latitude ? 
                                     `X: ${CoordinateUtils.formatCoordinate(device.installCoordinates.longitude)}<br>Y: ${CoordinateUtils.formatCoordinate(device.installCoordinates.latitude)}` : 
                                     'X: --<br>Y: --'}
                             </div>
@@ -3165,8 +3165,8 @@ setupSiteCheckInEvents() {
             addConditionField();
             
             // 重置坐标输入
-            deviceInstallLatitudeInput.value = '';
             deviceInstallLongitudeInput.value = '';
+            deviceInstallLatitudeInput.value = '';
 
             // 显示模态框
             addDeviceModal.classList.remove('hidden');
@@ -3371,9 +3371,9 @@ setupSiteCheckInEvents() {
             editInspectionCycleInput.value = device.inspectionCycle;
             editLastInspectionDateInput.value = device.lastInspectionDate;
             
-            // 设置安装坐标
-            editDeviceInstallLatitudeInput.value = device.installCoordinates?.latitude || '';
+            // 设置安装坐标 - 修改为经纬顺序
             editDeviceInstallLongitudeInput.value = device.installCoordinates?.longitude || '';
+            editDeviceInstallLatitudeInput.value = device.installCoordinates?.latitude || '';
 
             // 清空条件容器
             editConditionsContainer.innerHTML = '';
@@ -3484,9 +3484,9 @@ setupSiteCheckInEvents() {
             var inspectionCycle = parseInt(editInspectionCycleInput.value) || 12;
             var lastInspectionDate = editLastInspectionDateInput.value;
             
-            // 获取安装坐标
-            var installLatitude = editDeviceInstallLatitudeInput.value.trim();
+            // 获取安装坐标 - 修改为经纬顺序
             var installLongitude = editDeviceInstallLongitudeInput.value.trim();
+            var installLatitude = editDeviceInstallLatitudeInput.value.trim();
 
             // 获取条件
             var conditions = [];
@@ -3527,10 +3527,10 @@ setupSiteCheckInEvents() {
             device.lastInspectionDate = lastInspectionDate;
             device.updatedAt = new Date().toISOString();
             
-            // 更新安装坐标
+            // 更新安装坐标 - 修改为经纬顺序
             device.installCoordinates = {
-                latitude: installLatitude,
-                longitude: installLongitude
+                longitude: installLongitude,
+                latitude: installLatitude
             };
 
             // 更新条件（保留现有条件的状态）
@@ -3576,9 +3576,9 @@ setupSiteCheckInEvents() {
             var inspectionCycle = parseInt(document.getElementById('inspection-cycle').value) || 12;
             var lastInspectionDate = document.getElementById('last-inspection-date').value;
             
-            // 获取安装坐标
-            var installLatitude = deviceInstallLatitudeInput.value.trim();
+            // 获取安装坐标 - 修改为经纬顺序
             var installLongitude = deviceInstallLongitudeInput.value.trim();
+            var installLatitude = deviceInstallLatitudeInput.value.trim();
 
             // 获取条件
             var conditions = [];
@@ -3613,8 +3613,8 @@ setupSiteCheckInEvents() {
                 category: deviceCategory,
                 location: deviceLocation,
                 installCoordinates: {
-                    latitude: installLatitude,
-                    longitude: installLongitude
+                    longitude: installLongitude,
+                    latitude: installLatitude
                 },
                 model: deviceModel,
                 manufacturer: deviceManufacturer,
@@ -3924,7 +3924,8 @@ setupSiteCheckInEvents() {
             }
 
             try {
-                let exportData = '';
+                // 添加标题行
+                let exportData = '设备名称,类别,安装地点,安装坐标(经度),安装坐标(纬度),规格型号,生产厂家,出厂编号,测量范围,上次检定日期,检定周期,巡检项目\n';
                 
                 devices.forEach(device => {
                     // 设备基本信息
@@ -3932,8 +3933,8 @@ setupSiteCheckInEvents() {
                         device.name || '',
                         device.category || '',
                         device.location || '',
-                        device.installCoordinates?.latitude || '',
                         device.installCoordinates?.longitude || '',
+                        device.installCoordinates?.latitude || '',
                         device.model || '',
                         device.manufacturer || '',
                         device.serialNumber || '',
@@ -4002,26 +4003,34 @@ setupSiteCheckInEvents() {
                             return;
                         }
                         
+                        // 跳过标题行（第一行）
+                        const dataLines = lines.slice(1);
+                        
+                        if (dataLines.length === 0) {
+                            alert('文件中没有有效数据');
+                            return;
+                        }
+                        
                         const importedDevices = [];
                         
-                        lines.forEach((line, index) => {
+                        dataLines.forEach((line, index) => {
                             try {
                                 // 使用逗号分割参数
                                 const parts = line.split(',');
                                 
                                 if (parts.length < 11) {
-                                    console.warn(`第${index + 1}行数据格式不正确，跳过`);
+                                    console.warn(`第${index + 2}行数据格式不正确，跳过`);
                                     return;
                                 }
                                 
-                                // 解析设备信息
+                                // 解析设备信息 - 注意：现在第4个参数是经度，第5个参数是纬度
                                 const deviceInfo = {
                                     name: parts[0] || '未命名设备',
                                     category: parts[1] || '未分类',
                                     location: parts[2] || '未知位置',
                                     installCoordinates: {
-                                        latitude: parts[3] || '',
-                                        longitude: parts[4] || ''
+                                        longitude: parts[3] || '',
+                                        latitude: parts[4] || ''
                                     },
                                     model: parts[5] || '',
                                     manufacturer: parts[6] || '',
@@ -4063,8 +4072,8 @@ setupSiteCheckInEvents() {
                                 importedDevices.push(device);
                                 
                             } catch (error) {
-                                console.error(`解析第${index + 1}行数据失败:`, error);
-                                ErrorLogger.logError(`解析导入数据第${index + 1}行失败`, error);
+                                console.error(`解析第${index + 2}行数据失败:`, error);
+                                ErrorLogger.logError(`解析导入数据第${index + 2}行失败`, error);
                             }
                         });
                         
@@ -4642,13 +4651,13 @@ setupSiteCheckInEvents() {
                     console.log('获取到当前位置:', latitude, longitude);
                     
                     if (deviceIndex === -1) {
-                        // 添加设备模态框
-                        deviceInstallLatitudeInput.value = CoordinateUtils.formatCoordinate(latitude);
+                        // 添加设备模态框 - 修改为经纬顺序
                         deviceInstallLongitudeInput.value = CoordinateUtils.formatCoordinate(longitude);
+                        deviceInstallLatitudeInput.value = CoordinateUtils.formatCoordinate(latitude);
                     } else {
-                        // 编辑设备模态框
-                        editDeviceInstallLatitudeInput.value = CoordinateUtils.formatCoordinate(latitude);
+                        // 编辑设备模态框 - 修改为经纬顺序
                         editDeviceInstallLongitudeInput.value = CoordinateUtils.formatCoordinate(longitude);
+                        editDeviceInstallLatitudeInput.value = CoordinateUtils.formatCoordinate(latitude);
                         
                         // 更新设备定位数据
                         DataManager.updateDeviceLocation(deviceIndex, {
@@ -4660,11 +4669,11 @@ setupSiteCheckInEvents() {
                         // 检查现场打卡功能是否开启，如果开启则进行坐标匹配验证
                         if (siteCheckInEnabled) {
                             const device = devices[deviceIndex];
-                            if (device.installCoordinates && device.installCoordinates.latitude && device.installCoordinates.longitude) {
-                                const installLat = parseFloat(device.installCoordinates.latitude);
+                            if (device.installCoordinates && device.installCoordinates.longitude && device.installCoordinates.latitude) {
                                 const installLng = parseFloat(device.installCoordinates.longitude);
-                                const currentLat = position.coords.latitude;
+                                const installLat = parseFloat(device.installCoordinates.latitude);
                                 const currentLng = position.coords.longitude;
+                                const currentLat = position.coords.latitude;
 
                                 if (CoordinateUtils.isValidCoordinate(installLat, installLng) && 
                                     CoordinateUtils.isValidCoordinate(currentLat, currentLng)) {
