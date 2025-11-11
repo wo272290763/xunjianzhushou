@@ -2475,27 +2475,27 @@
                 saveDeviationRangeBtn.addEventListener('click', saveLocationDeviationRange);
             },
             
-// 设置现场打卡功能事件
-setupSiteCheckInEvents() {
-    if (siteCheckinToggle) {
-        // 更新开关UI状态
-        updateSiteCheckinToggleUI();
-        
-        // 添加点击事件监听
-        siteCheckinToggle.addEventListener('change', handleSiteCheckinToggle);
-        
-        // 添加自定义滑块的点击事件，以便点击整个滑块区域都能触发开关
-        const sliderContainer = siteCheckinToggle.parentElement;
-        if (sliderContainer) {
-            sliderContainer.addEventListener('click', function(e) {
-                // 阻止事件冒泡，避免重复触发
-                e.stopPropagation();
-                siteCheckinToggle.checked = !siteCheckinToggle.checked;
-                handleSiteCheckinToggle();
-            });
-        }
-    }
-},
+            // 设置现场打卡功能事件
+            setupSiteCheckInEvents() {
+                if (siteCheckinToggle) {
+                    // 更新开关UI状态
+                    updateSiteCheckinToggleUI();
+                    
+                    // 添加点击事件监听
+                    siteCheckinToggle.addEventListener('change', handleSiteCheckinToggle);
+                    
+                    // 添加自定义滑块的点击事件，以便点击整个滑块区域都能触发开关
+                    const sliderContainer = siteCheckinToggle.parentElement;
+                    if (sliderContainer) {
+                        sliderContainer.addEventListener('click', function(e) {
+                            // 阻止事件冒泡，避免重复触发
+                            e.stopPropagation();
+                            siteCheckinToggle.checked = !siteCheckinToggle.checked;
+                            handleSiteCheckinToggle();
+                        });
+                    }
+                }
+            },
         };
 
         // ========== 用户体验管理器 ==========
@@ -3668,25 +3668,23 @@ setupSiteCheckInEvents() {
                 var dateSection = document.createElement('div');
                 dateSection.className = 'mb-6';
                 
-                // 修改：计算该日期的进度 - 只有当设备的所有巡检项目都完成时才计入已完成设备
-                const totalDevices = devices.length;
+                // 修复Bug 1：使用记录中的设备数据来计算进度，而不是当前设备状态
+                const totalDevices = Object.keys(record.devices).length;
                 let inspectedDevices = 0;
-                
-                // 遍历所有设备，检查该日期是否所有巡检项目都已完成
-                devices.forEach(device => {
-                    const deviceRecord = record.devices[device.id];
-                    if (deviceRecord) {
-                        // 检查该设备在该日期是否所有巡检项目都已完成
-                        const allConditionsCompleted = device.conditions.every(condition => {
-                            // 查找该条件在该日期的记录
-                            const conditionRecord = deviceRecord.conditions.find(c => c.id === condition.id);
-                            // 如果有记录且状态不是待巡检，则认为已完成
-                            return conditionRecord && conditionRecord.status !== 'pending';
-                        });
-                        
-                        if (allConditionsCompleted) {
-                            inspectedDevices++;
-                        }
+
+                // 遍历该日期记录中的每个设备
+                Object.values(record.devices).forEach(deviceRecord => {
+                    const device = deviceRecord.device;
+                    // 检查该设备在该日期是否所有巡检项目都已完成
+                    const allConditionsCompleted = device.conditions.every(condition => {
+                        // 查找该条件在该日期的记录
+                        const conditionRecord = deviceRecord.conditions.find(c => c.id === condition.id);
+                        // 如果有记录且状态不是待巡检，则认为已完成
+                        return conditionRecord && conditionRecord.status !== 'pending';
+                    });
+                    
+                    if (allConditionsCompleted) {
+                        inspectedDevices++;
                     }
                 });
                 
@@ -4601,6 +4599,7 @@ setupSiteCheckInEvents() {
             }
         }
 
+        // 修复Bug 2：拍照功能不能正确保存照片的问题
         function capturePhoto() {
             if (!currentCameraStream) return;
             
@@ -4613,14 +4612,12 @@ setupSiteCheckInEvents() {
             
             const imageData = canvas.toDataURL('image/jpeg');
             
-            closeCameraModal();
+            // 先添加图片，然后关闭摄像头模态框
+            if (currentImageDeviceIndex !== -1) {
+                addDeviceImageFromFile(imageData);
+            }
             
-            // 添加图片到设备
-            setTimeout(() => {
-                if (currentImageDeviceIndex !== -1) {
-                    addDeviceImageFromFile(imageData);
-                }
-            }, 300);
+            closeCameraModal();
         }
 
         // ========== 坐标定位功能 ==========
@@ -4809,43 +4806,43 @@ setupSiteCheckInEvents() {
             }
         }
 
-// ========== 现场打卡功能 ==========
-function handleSiteCheckinToggle() {
-    const enabled = siteCheckinToggle.checked;
-    DataManager.toggleSiteCheckIn(enabled);
-    
-    // 更新开关UI
-    updateSiteCheckinToggleUI();
-    
-    if (enabled) {
-        UXManager.showOperationFeedback('现场打卡功能已开启', 'success');
-    } else {
-        UXManager.showOperationFeedback('现场打卡功能已关闭', 'success');
-    }
-    
-    // 刷新设备列表以更新遮罩状态
-    EventManager.refreshUI();
-}
-
-function updateSiteCheckinToggleUI() {
-    if (!siteCheckinToggle) return;
-    
-    siteCheckinToggle.checked = siteCheckInEnabled;
-    
-    // 更新开关样式
-    const slider = document.querySelector('.site-checkin-slider');
-    const dot = document.querySelector('.site-checkin-dot');
-    
-    if (slider && dot) {
-        if (siteCheckInEnabled) {
-            slider.style.backgroundColor = '#3B82F6'; // 蓝色
-            dot.style.transform = 'translateX(24px)';
-        } else {
-            slider.style.backgroundColor = '#9CA3AF'; // 灰色
-            dot.style.transform = 'translateX(0)';
+        // ========== 现场打卡功能 ==========
+        function handleSiteCheckinToggle() {
+            const enabled = siteCheckinToggle.checked;
+            DataManager.toggleSiteCheckIn(enabled);
+            
+            // 更新开关UI
+            updateSiteCheckinToggleUI();
+            
+            if (enabled) {
+                UXManager.showOperationFeedback('现场打卡功能已开启', 'success');
+            } else {
+                UXManager.showOperationFeedback('现场打卡功能已关闭', 'success');
+            }
+            
+            // 刷新设备列表以更新遮罩状态
+            EventManager.refreshUI();
         }
-    }
-}
+
+        function updateSiteCheckinToggleUI() {
+            if (!siteCheckinToggle) return;
+            
+            siteCheckinToggle.checked = siteCheckInEnabled;
+            
+            // 更新开关样式
+            const slider = document.querySelector('.site-checkin-slider');
+            const dot = document.querySelector('.site-checkin-dot');
+            
+            if (slider && dot) {
+                if (siteCheckInEnabled) {
+                    slider.style.backgroundColor = '#3B82F6'; // 蓝色
+                    dot.style.transform = 'translateX(24px)';
+                } else {
+                    slider.style.backgroundColor = '#9CA3AF'; // 灰色
+                    dot.style.transform = 'translateX(0)';
+                }
+            }
+        }
 
         // ========== 工具函数 ==========
 
