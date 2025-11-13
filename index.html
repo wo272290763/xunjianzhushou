@@ -3668,23 +3668,30 @@
                 var dateSection = document.createElement('div');
                 dateSection.className = 'mb-6';
                 
-                // 修复Bug 1：使用记录中的设备数据来计算进度，而不是当前设备状态
-                const totalDevices = Object.keys(record.devices).length;
+                // 修复Bug一：正确计算该日期的巡检进度
+                const totalDevices = devices.length;
                 let inspectedDevices = 0;
-
-                // 遍历该日期记录中的每个设备
-                Object.values(record.devices).forEach(deviceRecord => {
-                    const device = deviceRecord.device;
-                    // 检查该设备在该日期是否所有巡检项目都已完成
-                    const allConditionsCompleted = device.conditions.every(condition => {
-                        // 查找该条件在该日期的记录
-                        const conditionRecord = deviceRecord.conditions.find(c => c.id === condition.id);
-                        // 如果有记录且状态不是待巡检，则认为已完成
-                        return conditionRecord && conditionRecord.status !== 'pending';
-                    });
-                    
-                    if (allConditionsCompleted) {
-                        inspectedDevices++;
+                
+                // 遍历所有设备，检查该日期是否所有巡检项目都已完成
+                devices.forEach(device => {
+                    // 获取该设备在该日期的所有条件记录
+                    const deviceRecord = record.devices[device.id];
+                    if (deviceRecord) {
+                        // 检查该设备在该日期是否所有巡检项目都已完成
+                        const allConditionsCompleted = device.conditions.every(condition => {
+                            // 查找该条件在该日期的记录 - 修复：使用条件ID和名称双重匹配
+                            let conditionRecord = deviceRecord.conditions.find(c => c.id === condition.id);
+                            if (!conditionRecord) {
+                                // 如果通过ID找不到，尝试通过名称查找（兼容旧数据）
+                                conditionRecord = deviceRecord.conditions.find(c => c.name === condition.name);
+                            }
+                            // 如果有记录且状态不是待巡检，则认为已完成
+                            return conditionRecord && conditionRecord.status !== 'pending';
+                        });
+                        
+                        if (allConditionsCompleted) {
+                            inspectedDevices++;
+                        }
                     }
                 });
                 
@@ -3744,8 +3751,13 @@
                 var lastInspectionTime = null;
                 
                 device.conditions.forEach(function(condition) {
-                    var conditionRecord = conditionRecords.find(function(cr) { return cr.id === condition.id; });
-                    var display = StatusManager.getConditionDisplay(condition, date);
+                    // 查找该条件在该日期的记录 - 修复：使用条件ID和名称双重匹配
+                    let conditionRecord = conditionRecords.find(cr => cr.id === condition.id);
+                    if (!conditionRecord) {
+                        conditionRecord = conditionRecords.find(cr => cr.name === condition.name);
+                    }
+                    
+                    const display = StatusManager.getConditionDisplay(condition, date);
                     
                     if (display.status === 'normal') normalCount++;
                     if (display.status === 'abnormal') abnormalCount++;
@@ -3779,8 +3791,13 @@
                     </div>
                     <div class="record-conditions-row">
                         ${device.conditions.map(function(condition) {
-                            var conditionRecord = conditionRecords.find(function(cr) { return cr.id === condition.id; });
-                            var display = StatusManager.getConditionDisplay(condition, date);
+                            // 查找该条件在该日期的记录 - 修复：使用条件ID和名称双重匹配
+                            let conditionRecord = conditionRecords.find(cr => cr.id === condition.id);
+                            if (!conditionRecord) {
+                                conditionRecord = conditionRecords.find(cr => cr.name === condition.name);
+                            }
+                            
+                            const display = StatusManager.getConditionDisplay(condition, date);
                             
                             return `
                                 <div class="condition-item p-1 ${display.className} border ${display.borderColor} rounded text-xs ${display.textColor}" style="font-size: 0.7rem;">
@@ -4599,7 +4616,7 @@
             }
         }
 
-        // 修复Bug 2：拍照功能不能正确保存照片的问题
+        // 修复Bug二：拍照功能不能正确保存照片
         function capturePhoto() {
             if (!currentCameraStream) return;
             
@@ -4612,12 +4629,18 @@
             
             const imageData = canvas.toDataURL('image/jpeg');
             
-            // 先添加图片，然后关闭摄像头模态框
+            // 修复：立即添加图片到设备，而不是延迟执行
             if (currentImageDeviceIndex !== -1) {
-                addDeviceImageFromFile(imageData);
+                addDeviceImageFromFile(imageData).then(() => {
+                    // 图片添加成功后关闭相机模态框
+                    closeCameraModal();
+                }).catch(error => {
+                    console.error('添加图片失败:', error);
+                    closeCameraModal();
+                });
+            } else {
+                closeCameraModal();
             }
-            
-            closeCameraModal();
         }
 
         // ========== 坐标定位功能 ==========
