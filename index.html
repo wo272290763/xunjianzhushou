@@ -1490,7 +1490,65 @@
                 const today = getCurrentDate();
                 const targetDate = date || today;
                 
-                // 检查是否有历史记录
+                // 修复：如果查询的是往日记录，只从历史记录中获取
+                if (targetDate !== today) {
+                    // 查找历史记录
+                    let historyRecord = null;
+                    if (condition.history && condition.history.length > 0) {
+                        historyRecord = condition.history.find(h => h.date === targetDate);
+                    }
+                    
+                    if (historyRecord) {
+                        // 有历史记录，使用历史记录的状态
+                        const displayStatus = historyRecord.status;
+                        const timeDisplay = historyRecord.inspectionTime ? historyRecord.inspectionTime.split(' ')[1]?.substr(0, 5) : '';
+                        
+                        const statusConfig = {
+                            normal: {
+                                statusClass: 'status-normal',
+                                className: 'bg-green-50',
+                                borderColor: 'border-green-100',
+                                textColor: 'text-green-800'
+                            },
+                            abnormal: {
+                                statusClass: 'status-abnormal',
+                                className: 'bg-red-50',
+                                borderColor: 'border-red-100',
+                                textColor: 'text-red-800'
+                            },
+                            pending: {
+                                statusClass: 'status-pending',
+                                className: 'bg-gray-50',
+                                borderColor: 'border-gray-100',
+                                textColor: 'text-gray-800'
+                            }
+                        };
+
+                        const config = statusConfig[displayStatus];
+
+                        return {
+                            status: displayStatus,
+                            ...config,
+                            timeDisplay: timeDisplay,
+                            isToday: false,
+                            historyRecord: historyRecord
+                        };
+                    } else {
+                        // 没有历史记录，显示为待巡检
+                        return {
+                            status: 'pending',
+                            statusClass: 'status-pending',
+                            className: 'bg-gray-50',
+                            borderColor: 'border-gray-100',
+                            textColor: 'text-gray-800',
+                            timeDisplay: '',
+                            isToday: false,
+                            historyRecord: null
+                        };
+                    }
+                }
+                
+                // 如果是今天，按原有逻辑处理
                 let historyRecord = null;
                 if (condition.history && condition.history.length > 0) {
                     historyRecord = condition.history.find(h => h.date === targetDate);
@@ -3822,33 +3880,6 @@
             // 遍历所有设备和条件的历史记录
             devices.forEach(function(device) {
                 device.conditions.forEach(function(condition) {
-                    // 处理当前状态
-                    if (condition.inspectionTime) {
-                        var inspectionDate = condition.inspectionTime.split(' ')[0];
-                        if (!recordsMap[inspectionDate]) {
-                            recordsMap[inspectionDate] = {
-                                date: inspectionDate,
-                                devices: {}
-                            };
-                        }
-                        
-                        if (!recordsMap[inspectionDate].devices[device.id]) {
-                            recordsMap[inspectionDate].devices[device.id] = {
-                                device: device,
-                                conditions: []
-                            };
-                        }
-                        
-                        // 添加条件记录
-                        recordsMap[inspectionDate].devices[device.id].conditions.push({
-                            id: condition.id,
-                            name: condition.name,
-                            status: condition.status,
-                            remark: condition.remark,
-                            inspectionTime: condition.inspectionTime
-                        });
-                    }
-                    
                     // 处理历史记录
                     if (condition.history && condition.history.length > 0) {
                         condition.history.forEach(function(historyRecord) {
